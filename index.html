@@ -1,0 +1,2451 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked Lists in C — Interactive Learning</title>
+<style>
+/* ===== THEME VARIABLES ===== */
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #21262d;
+  --bg4:      #2d333b;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --text2:    #8b949e;
+  --text3:    #6e7681;
+  --accent:   #58a6ff;
+  --green:    #3fb950;
+  --yellow:   #e3b341;
+  --red:      #f85149;
+  --purple:   #d2a8ff;
+  --orange:   #ffa657;
+  --cyan:     #79c0ff;
+  --node-bg:  #1f3a6e;
+  --node-bdr: #388bfd;
+}
+[data-theme="light"] {
+  --bg:       #f6f8fa;
+  --bg2:      #ffffff;
+  --bg3:      #f0f6fc;
+  --bg4:      #eaeef2;
+  --border:   #d0d7de;
+  --text:     #1f2328;
+  --text2:    #656d76;
+  --text3:    #818c98;
+  --accent:   #0969da;
+  --green:    #1a7f37;
+  --yellow:   #9a6700;
+  --red:      #cf222e;
+  --purple:   #8250df;
+  --orange:   #bc4c00;
+  --cyan:     #0550ae;
+  --node-bg:  #ddf4ff;
+  --node-bdr: #0969da;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex; font-size: 14px;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 230px; background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 0; position: fixed;
+  height: 100vh; overflow-y: auto; z-index: 100; transition: width 0.2s;
+}
+.sidebar-header {
+  padding: 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-header .logo { font-size: 20px; }
+.sidebar-header .title h2 { font-size: 14px; font-weight: 700; color: var(--accent); }
+.sidebar-header .title p { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.nav-section { padding: 8px 0; }
+.nav-section-label { padding: 6px 16px 4px; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500;
+  border-left: 3px solid transparent; transition: all 0.15s; white-space: nowrap;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg3); color: var(--accent); border-left-color: var(--accent); }
+.nav-item .ni { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-footer {
+  margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px;
+}
+.theme-btn {
+  flex: 1; padding: 7px; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text2); cursor: pointer; font-size: 12px; text-align: center;
+}
+.theme-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* ===== MAIN ===== */
+.main { margin-left: 230px; flex: 1; padding: 28px; min-height: 100vh; max-width: calc(100vw - 230px); }
+.page { display: none; animation: fadeUp 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ===== PAGE HEADER ===== */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header p { color: var(--text2); margin-top: 6px; font-size: 14px; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; margin-bottom: 18px;
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.card p { color: var(--text2); line-height: 1.75; margin-bottom: 10px; font-size: 13.5px; }
+.card p:last-child { margin-bottom: 0; }
+
+/* ===== GRID ===== */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ===== CODE BLOCK ===== */
+.code-wrap { position: relative; margin: 12px 0; }
+.code-block {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; font-family: 'JetBrains Mono','Fira Code','Cascadia Code',monospace;
+  font-size: 12.5px; line-height: 1.65; overflow-x: auto; white-space: pre;
+}
+.copy-btn {
+  position: absolute; top: 8px; right: 8px; padding: 4px 10px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text2); cursor: pointer; font-size: 11px; transition: all 0.15s;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* syntax */
+.kw  { color: #ff7b72; font-weight: 600; }
+.ty  { color: #ffa657; }
+.fn  { color: #d2a8ff; }
+.cm  { color: #8b949e; font-style: italic; }
+.st  { color: #a5d6ff; }
+.num { color: #79c0ff; }
+.pp  { color: #f0883e; }
+.hl  { background: rgba(255,220,0,0.12); display: inline-block; width: 100%; }
+
+/* ===== VIZ CONTAINER ===== */
+.viz-box {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; min-height: 150px; overflow: hidden; position: relative;
+  margin: 12px 0;
+}
+.viz-box svg { display: block; width: 100%; overflow: visible; }
+
+/* ===== CONTROLS ===== */
+.ctrl-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.ctrl-input {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); padding: 7px 11px; font-size: 13px; width: 80px;
+}
+.ctrl-input:focus { outline: none; border-color: var(--accent); }
+.ctrl-label { font-size: 12px; color: var(--text2); }
+.btn {
+  padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; transition: all 0.15s; line-height: 1;
+}
+.btn:active { transform: scale(0.97); }
+.btn-blue   { background: var(--accent);  color: #fff; }
+.btn-blue:hover { filter: brightness(1.1); }
+.btn-green  { background: var(--green);   color: #fff; }
+.btn-green:hover { filter: brightness(1.1); }
+.btn-red    { background: var(--red);     color: #fff; }
+.btn-red:hover { filter: brightness(1.1); }
+.btn-yellow { background: var(--yellow);  color: #000; }
+.btn-yellow:hover { filter: brightness(1.1); }
+.btn-ghost  { background: var(--bg3); border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* speed */
+.speed-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+input[type=range] { width: 100px; accent-color: var(--accent); cursor: pointer; }
+
+/* ===== STEP INFO BOX ===== */
+.step-box {
+  background: var(--bg3); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 10px 14px; font-size: 13px; min-height: 44px;
+  color: var(--text2); margin: 8px 0; transition: all 0.2s;
+}
+.step-box strong { color: var(--accent); }
+.step-box.warn { border-left-color: var(--yellow); }
+.step-box.warn strong { color: var(--yellow); }
+.step-box.danger { border-left-color: var(--red); }
+.step-box.danger strong { color: var(--red); }
+.step-box.ok { border-left-color: var(--green); }
+.step-box.ok strong { color: var(--green); }
+
+/* ===== TABS ===== */
+.tab-bar { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tab-btn {
+  padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text2); border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none;
+  transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ===== LEGEND ===== */
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text2); margin: 8px 0; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.ld { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.ld-blue   { background: #1f3a6e; border: 1.5px solid #388bfd; }
+.ld-yellow { background: #5c4a00; border: 1.5px solid var(--yellow); }
+.ld-green  { background: #0c3320; border: 1.5px solid var(--green); }
+.ld-red    { background: #4a0c0c; border: 1.5px solid var(--red); }
+
+/* ===== BADGES ===== */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-time  { background: rgba(88,166,255,0.15);  color: var(--accent); }
+.badge-space { background: rgba(63,185,80,0.15);   color: var(--green); }
+.badge-hard  { background: rgba(248,81,73,0.15);   color: var(--red); }
+.badge-med   { background: rgba(227,179,65,0.15);  color: var(--yellow); }
+.badge-easy  { background: rgba(63,185,80,0.15);   color: var(--green); }
+
+/* ===== ALERTS ===== */
+.alert { padding: 10px 14px; border-radius: 7px; font-size: 13px; margin: 10px 0; display: flex; gap: 8px; align-items: flex-start; line-height: 1.6; }
+.alert-icon { flex-shrink: 0; font-size: 16px; }
+.alert-info   { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.25); color: var(--text2); }
+.alert-warn   { background: rgba(227,179,65,0.08); border: 1px solid rgba(227,179,65,0.25); color: var(--text2); }
+.alert-danger { background: rgba(248,81,73,0.08);  border: 1px solid rgba(248,81,73,0.25);  color: var(--text2); }
+.alert-ok     { background: rgba(63,185,80,0.08);  border: 1px solid rgba(63,185,80,0.25);  color: var(--text2); }
+
+/* ===== MEMORY TABLE ===== */
+.mem-tbl { width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace; }
+.mem-tbl th, .mem-tbl td { padding: 6px 12px; border: 1px solid var(--border); }
+.mem-tbl th { background: var(--bg3); color: var(--text2); font-weight: 600; }
+.mem-tbl td { color: var(--text); }
+.mem-tbl .row-hl  { background: rgba(88,166,255,0.1); }
+.mem-tbl .row-err { background: rgba(248,81,73,0.12); }
+.mem-tbl .row-ok  { background: rgba(63,185,80,0.1); }
+
+/* ===== QUIZ ===== */
+.quiz-q { margin-bottom: 24px; }
+.quiz-q h4 { font-size: 14px; margin-bottom: 12px; line-height: 1.6; }
+.quiz-opt {
+  display: block; width: 100%; text-align: left; background: var(--bg3);
+  border: 1px solid var(--border); color: var(--text); padding: 10px 14px;
+  border-radius: 7px; cursor: pointer; font-size: 13px; margin: 5px 0; transition: all 0.15s;
+}
+.quiz-opt:hover:not(:disabled) { border-color: var(--accent); }
+.quiz-opt.correct { background: rgba(63,185,80,0.15); border-color: var(--green); color: var(--green); }
+.quiz-opt.wrong   { background: rgba(248,81,73,0.15); border-color: var(--red);   color: var(--red); }
+.quiz-opt:disabled { cursor: default; }
+.quiz-exp { background: var(--bg3); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 5px; font-size: 13px; color: var(--text2); margin-top: 10px; display: none; line-height: 1.7; }
+.quiz-exp.show { display: block; }
+.quiz-progress { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.quiz-bar-wrap { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; }
+.quiz-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.quiz-count { font-size: 12px; color: var(--text2); }
+
+/* ===== DEBUG PANEL ===== */
+.dbg-scenario { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 12px 0; }
+.dbg-header {
+  background: var(--bg3); padding: 12px 16px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.dbg-header:hover { background: var(--bg4); }
+.dbg-header h4 { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.bug-badge { background: var(--red); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.ok-badge  { background: var(--green); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.dbg-body { padding: 16px; display: none; border-top: 1px solid var(--border); }
+.dbg-body.open { display: block; }
+
+/* ===== ALGO CARD ===== */
+.algo-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+.algo-header { background: var(--bg3); padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.algo-header h3 { font-size: 15px; font-weight: 600; color: var(--accent); }
+.algo-body { padding: 18px; }
+
+/* ===== POINTER DIAGRAM (BASICS) ===== */
+.ptr-diagram { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 16px; }
+.ptr-box { text-align: center; }
+.ptr-var {
+  background: var(--bg3); border: 1.5px solid var(--accent); border-radius: 6px;
+  padding: 8px 14px; font-family: monospace; font-size: 13px; color: var(--accent); font-weight: 600;
+}
+.ptr-addr { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: monospace; }
+.ptr-arr { font-size: 24px; color: var(--accent); }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+@media (max-width: 768px) {
+  .sidebar { width: 56px; }
+  .sidebar-header .title, .nav-item span, .sidebar-footer .theme-label, .nav-section-label { display: none; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .main { margin-left: 56px; padding: 16px; max-width: calc(100vw - 56px); }
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">🔗</div>
+    <div class="title">
+      <h2>LinkedList in C</h2>
+      <p>Interactive Learning</p>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Learn</div>
+    <div class="nav-item active" data-page="basics">
+      <span class="ni">📚</span><span>Basics</span>
+    </div>
+    <div class="nav-item" data-page="operations">
+      <span class="ni">⚙️</span><span>Operations</span>
+    </div>
+    <div class="nav-item" data-page="algorithms">
+      <span class="ni">🧮</span><span>Algorithms</span>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Practice</div>
+    <div class="nav-item" data-page="interview">
+      <span class="ni">💼</span><span>Interview Prep</span>
+    </div>
+    <div class="nav-item" data-page="debug">
+      <span class="ni">🐛</span><span>Debug Mode</span>
+    </div>
+    <div class="nav-item" data-page="quiz">
+      <span class="ni">🎯</span><span>Quiz</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
+  </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main" id="mainContent">
+
+<!-- ============================================================ -->
+<!-- PAGE: BASICS -->
+<!-- ============================================================ -->
+<div class="page active" id="page-basics">
+  <div class="page-header">
+    <h1>📚 Linked List Basics in C</h1>
+    <p>Understand pointers, structs, heap memory, and the foundation of linked lists in C.</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('basics','intro')">Introduction</button>
+    <button class="tab-btn" onclick="switchTab('basics','pointers')">Pointers</button>
+    <button class="tab-btn" onclick="switchTab('basics','struct')">Struct & Node</button>
+    <button class="tab-btn" onclick="switchTab('basics','memory')">Memory (Heap)</button>
+  </div>
+
+  <!-- TAB: INTRO -->
+  <div class="tab-pane active" id="basics-intro">
+    <div class="card">
+      <div class="card-title">🔗 What is a Linked List?</div>
+      <p>A <strong>linked list</strong> is a linear data structure where each element (called a <em>node</em>) contains data and a <em>pointer</em> to the next node. Unlike arrays, nodes are not stored contiguously in memory.</p>
+      <p>In C, a linked list is implemented using <strong>structs</strong> and <strong>pointers</strong>. The last node's <code>next</code> pointer is <code>NULL</code>.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺️ Visual Structure</div>
+      <div class="viz-box" style="min-height:120px;">
+        <svg id="basics-intro-svg" height="100" viewBox="0 0 700 100"></svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld ld-blue"></div> Normal node</div>
+        <div class="legend-item"><div class="ld" style="background:#1a1a1a;border:1.5px solid var(--text3)"></div> NULL terminator</div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">✅ Advantages</div>
+        <p>• Dynamic size — grows/shrinks at runtime</p>
+        <p>• O(1) insertion/deletion at head</p>
+        <p>• No memory waste (only allocate what you need)</p>
+        <p>• Foundation for stacks, queues, graphs</p>
+      </div>
+      <div class="card">
+        <div class="card-title">❌ Disadvantages</div>
+        <p>• No random access — O(n) to reach position k</p>
+        <p>• Extra memory for pointer per node</p>
+        <p>• Poor cache locality vs arrays</p>
+        <p>• Risk of memory leaks if <code>free()</code> not called</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: POINTERS -->
+  <div class="tab-pane" id="basics-pointers">
+    <div class="card">
+      <div class="card-title">🔭 What is a Pointer?</div>
+      <p>A <strong>pointer</strong> is a variable that stores the <em>memory address</em> of another variable. In C, pointers are central to linked lists because each node must "point to" the next.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block"><span class="kw">int</span>  x   = <span class="num">42</span>;        <span class="cm">// regular int variable at address 0x200</span>
+<span class="kw">int</span>* ptr = &amp;x;       <span class="cm">// ptr stores address of x → 0x200</span>
+
+printf(<span class="st">"Value:   %d\n"</span>, *ptr);   <span class="cm">// dereference → 42</span>
+printf(<span class="st">"Address: %p\n"</span>,  ptr);   <span class="cm">// → 0x200</span>
+
+*ptr = <span class="num">100</span>;                    <span class="cm">// changes x to 100 via pointer</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧠 Pointer Visualization</div>
+      <div class="viz-box" style="min-height:130px;">
+        <svg id="ptr-viz-svg" height="120" viewBox="0 0 600 120"></svg>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">📌 Key Operators</div>
+        <div class="code-block"><span class="kw">int</span> x = <span class="num">5</span>;
+<span class="kw">int</span>* p = &amp;x;   <span class="cm">// &amp; = address-of</span>
+<span class="kw">int</span>  v = *p;   <span class="cm">// * = dereference</span>
+
+<span class="cm">// For struct pointers:</span>
+p->data        <span class="cm">// same as (*p).data</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚠️ NULL Pointer</div>
+        <div class="code-block"><span class="kw">int</span>* p = <span class="num">NULL</span>;   <span class="cm">// safe init</span>
+
+<span class="kw">if</span> (p != <span class="num">NULL</span>) {
+    printf(<span class="st">"%d"</span>, *p); <span class="cm">// safe</span>
+}
+
+<span class="cm">// NEVER do this:</span>
+*p = <span class="num">5</span>;  <span class="cm">// → SEGFAULT! NULL deref</span></div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>Golden Rule:</strong> Always check if a pointer is NULL before dereferencing it. Dereferencing NULL is the #1 cause of segmentation faults in C linked list code.</div>
+    </div>
+  </div>
+
+  <!-- TAB: STRUCT -->
+  <div class="tab-pane" id="basics-struct">
+    <div class="card">
+      <div class="card-title">🏗️ Node Definition in C</div>
+      <p>A linked list node is defined as a <code>struct</code> in C. It contains the data and a self-referential pointer to the next node.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block"><span class="pp">#include &lt;stdio.h&gt;</span>
+<span class="pp">#include &lt;stdlib.h&gt;</span>
+
+<span class="cm">/* Define the node structure */</span>
+<span class="kw">struct</span> <span class="ty">Node</span> {
+    <span class="kw">int</span>          data;   <span class="cm">// 4 bytes — actual value</span>
+    <span class="kw">struct</span> <span class="ty">Node</span>* next;   <span class="cm">// 8 bytes (64-bit) — address of next node</span>
+};
+
+<span class="cm">/* Typedef for convenience */</span>
+<span class="kw">typedef struct</span> <span class="ty">Node</span> Node;
+
+<span class="cm">/* Create a new node */</span>
+<span class="ty">Node</span>* <span class="fn">createNode</span>(<span class="kw">int</span> val) {
+    <span class="ty">Node</span>* n = (<span class="ty">Node</span>*) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Node</span>));
+    <span class="kw">if</span> (n == <span class="num">NULL</span>) { <span class="cm">/* malloc failed — always check! */</span>
+        <span class="fn">fprintf</span>(stderr, <span class="st">"malloc failed\n"</span>);
+        <span class="fn">exit</span>(<span class="num">1</span>);
+    }
+    n->data = val;
+    n->next = <span class="num">NULL</span>;
+    <span class="kw">return</span> n;
+}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 Memory Layout of a Node</div>
+      <div class="viz-box" style="min-height:140px;">
+        <svg id="node-layout-svg" height="130" viewBox="0 0 640 130"></svg>
+      </div>
+      <p style="margin-top:8px">On a 64-bit system: <code>sizeof(Node) = 12 bytes</code> (4 + 8) with alignment possibly making it 16 bytes.</p>
+    </div>
+  </div>
+
+  <!-- TAB: MEMORY -->
+  <div class="tab-pane" id="basics-memory">
+    <div class="card">
+      <div class="card-title">🏠 Stack vs Heap</div>
+      <div class="g2">
+        <div>
+          <div class="alert alert-info"><span class="alert-icon">📦</span><div><strong>Stack:</strong> Fixed-size, automatic. Local variables live here. Freed when function returns. Fast but limited.</div></div>
+          <div class="code-block"><span class="ty">Node</span> n;         <span class="cm">// stack</span>
+n.data = <span class="num">5</span>;
+n.next = <span class="num">NULL</span>;
+<span class="cm">// freed when out of scope!</span></div>
+        </div>
+        <div>
+          <div class="alert alert-ok"><span class="alert-icon">🌐</span><div><strong>Heap:</strong> Dynamic, manual. <code>malloc()</code> allocates, <code>free()</code> deallocates. Lives until explicitly freed.</div></div>
+          <div class="code-block"><span class="ty">Node</span>* n = <span class="fn">malloc</span>(...); <span class="cm">// heap</span>
+n->data = <span class="num">5</span>;
+n->next = <span class="num">NULL</span>;
+<span class="fn">free</span>(n); <span class="cm">// YOU must free it</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔬 Memory Address Simulation</div>
+      <p>When you <code>malloc()</code> nodes, each gets a unique address on the heap. The <code>next</code> pointer stores that address.</p>
+      <div class="viz-box" style="min-height:170px;">
+        <svg id="heap-viz-svg" height="160" viewBox="0 0 700 160"></svg>
+      </div>
+      <table class="mem-tbl" style="margin-top:12px">
+        <thead><tr><th>Address</th><th>Variable</th><th>Value</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr class="row-ok"><td>0x100</td><td>node_A.data</td><td>10</td><td>int</td></tr>
+          <tr class="row-ok"><td>0x104</td><td>node_A.next</td><td>0x200</td><td>Node*</td></tr>
+          <tr class="row-hl"><td>0x200</td><td>node_B.data</td><td>20</td><td>int</td></tr>
+          <tr class="row-hl"><td>0x204</td><td>node_B.next</td><td>0x300</td><td>Node*</td></tr>
+          <tr><td>0x300</td><td>node_C.data</td><td>30</td><td>int</td></tr>
+          <tr><td>0x304</td><td>node_C.next</td><td>0x000 (NULL)</td><td>Node*</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧹 malloc and free</div>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block"><span class="cm">/* Allocating a node */</span>
+<span class="ty">Node</span>* p = (<span class="ty">Node</span>*) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Node</span>));
+
+<span class="cm">/* Free a single node */</span>
+<span class="fn">free</span>(p);
+p = <span class="num">NULL</span>;  <span class="cm">// prevent dangling pointer</span>
+
+<span class="cm">/* Free entire list — traverse and free each */</span>
+<span class="kw">void</span> <span class="fn">freeList</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* curr = head;
+    <span class="kw">while</span> (curr != <span class="num">NULL</span>) {
+        <span class="ty">Node</span>* temp = curr->next;  <span class="cm">// save next BEFORE freeing</span>
+        <span class="fn">free</span>(curr);
+        curr = temp;
+    }
+}</div>
+      </div>
+      <div class="alert alert-danger" style="margin-top:12px">
+        <span class="alert-icon">💥</span>
+        <div><strong>Memory leak!</strong> If you lose all references to a heap node without calling <code>free()</code>, that memory is leaked. Over time this can crash long-running programs.</div>
+      </div>
+    </div>
+  </div>
+</div><!-- end page-basics -->
+
+
+<!-- ============================================================ -->
+<!-- PAGE: OPERATIONS -->
+<!-- ============================================================ -->
+<div class="page" id="page-operations">
+  <div class="page-header">
+    <h1>⚙️ Linked List Operations</h1>
+    <p>Animate every operation step-by-step with C code highlighting.</p>
+  </div>
+
+  <!-- List display + controls -->
+  <div class="card">
+    <div class="card-title">🖥️ Live Linked List</div>
+    <div class="viz-box" style="min-height:140px;" id="ops-viz-box">
+      <svg id="ops-svg" height="120" viewBox="0 0 700 120"></svg>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="ld ld-blue"></div> Normal</div>
+      <div class="legend-item"><div class="ld ld-yellow"></div> Current pointer</div>
+      <div class="legend-item"><div class="ld ld-green"></div> Processed</div>
+      <div class="legend-item"><div class="ld ld-red"></div> Being modified</div>
+    </div>
+    <div class="step-box" id="ops-step-box">Ready. Choose an operation below.</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('ops','insert')">Insert</button>
+    <button class="tab-btn" onclick="switchTab('ops','delete')">Delete</button>
+    <button class="tab-btn" onclick="switchTab('ops','traverse')">Traverse &amp; Search</button>
+  </div>
+
+  <!-- INSERT TAB -->
+  <div class="tab-pane active" id="ops-insert">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">➕ Insert at Beginning</div>
+        <div class="ctrl-row">
+          <label class="ctrl-label">Value:</label>
+          <input type="number" class="ctrl-input" id="ins-beg-val" value="5" min="-999" max="999">
+          <button class="btn btn-blue" onclick="opInsertBeg()">Insert</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block" id="code-ins-beg"><span class="kw">void</span> <span class="fn">insertBeg</span>(<span class="ty">Node</span>** head, <span class="kw">int</span> val) {
+    <span class="ty">Node</span>* n = <span class="fn">createNode</span>(val);  <span class="cm">// Step 1</span>
+    n->next = *head;              <span class="cm">// Step 2</span>
+    *head   = n;                  <span class="cm">// Step 3</span>
+}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">➕ Insert at End</div>
+        <div class="ctrl-row">
+          <label class="ctrl-label">Value:</label>
+          <input type="number" class="ctrl-input" id="ins-end-val" value="9" min="-999" max="999">
+          <button class="btn btn-blue" onclick="opInsertEnd()">Insert</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">void</span> <span class="fn">insertEnd</span>(<span class="ty">Node</span>** head, <span class="kw">int</span> val) {
+    <span class="ty">Node</span>* n = <span class="fn">createNode</span>(val);
+    <span class="kw">if</span> (*head == <span class="num">NULL</span>) {
+        *head = n; <span class="kw">return</span>;
+    }
+    <span class="ty">Node</span>* t = *head;
+    <span class="kw">while</span> (t->next != <span class="num">NULL</span>)  <span class="cm">// traverse</span>
+        t = t->next;
+    t->next = n;               <span class="cm">// link</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">➕ Insert at Position</div>
+      <div class="ctrl-row">
+        <label class="ctrl-label">Value:</label>
+        <input type="number" class="ctrl-input" id="ins-pos-val" value="7" min="-999" max="999">
+        <label class="ctrl-label">Position (0-based):</label>
+        <input type="number" class="ctrl-input" id="ins-pos-idx" value="1" min="0" max="20">
+        <button class="btn btn-blue" onclick="opInsertPos()">Insert</button>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block"><span class="kw">void</span> <span class="fn">insertAt</span>(<span class="ty">Node</span>** head, <span class="kw">int</span> val, <span class="kw">int</span> pos) {
+    <span class="kw">if</span> (pos == <span class="num">0</span>) { <span class="fn">insertBeg</span>(head, val); <span class="kw">return</span>; }
+    <span class="ty">Node</span>* n = <span class="fn">createNode</span>(val);
+    <span class="ty">Node</span>* t = *head;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; pos-<span class="num">1</span> &amp;&amp; t != <span class="num">NULL</span>; i++)
+        t = t->next;
+    <span class="kw">if</span> (t == <span class="num">NULL</span>) { <span class="fn">free</span>(n); <span class="kw">return</span>; } <span class="cm">// out of range</span>
+    n->next = t->next;
+    t->next = n;
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE TAB -->
+  <div class="tab-pane" id="ops-delete">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">🗑️ Delete at Beginning</div>
+        <div class="ctrl-row">
+          <button class="btn btn-red" onclick="opDeleteBeg()">Delete Head</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">void</span> <span class="fn">deleteBeg</span>(<span class="ty">Node</span>** head) {
+    <span class="kw">if</span> (*head == <span class="num">NULL</span>) <span class="kw">return</span>;  <span class="cm">// empty</span>
+    <span class="ty">Node</span>* temp = *head;     <span class="cm">// save ref</span>
+    *head = (*head)->next;   <span class="cm">// move head</span>
+    <span class="fn">free</span>(temp);              <span class="cm">// release memory</span>
+}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗑️ Delete at End</div>
+        <div class="ctrl-row">
+          <button class="btn btn-red" onclick="opDeleteEnd()">Delete Tail</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">void</span> <span class="fn">deleteEnd</span>(<span class="ty">Node</span>** head) {
+    <span class="kw">if</span> (*head == <span class="num">NULL</span>) <span class="kw">return</span>;
+    <span class="kw">if</span> ((*head)->next == <span class="num">NULL</span>) {
+        <span class="fn">free</span>(*head); *head = <span class="num">NULL</span>; <span class="kw">return</span>;
+    }
+    <span class="ty">Node</span>* t = *head;
+    <span class="kw">while</span> (t->next->next != <span class="num">NULL</span>)
+        t = t->next;
+    <span class="fn">free</span>(t->next);
+    t->next = <span class="num">NULL</span>;
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗑️ Delete at Position</div>
+      <div class="ctrl-row">
+        <label class="ctrl-label">Position (0-based):</label>
+        <input type="number" class="ctrl-input" id="del-pos-idx" value="1" min="0" max="20">
+        <button class="btn btn-red" onclick="opDeletePos()">Delete</button>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block"><span class="kw">void</span> <span class="fn">deleteAt</span>(<span class="ty">Node</span>** head, <span class="kw">int</span> pos) {
+    <span class="kw">if</span> (*head == <span class="num">NULL</span>) <span class="kw">return</span>;
+    <span class="kw">if</span> (pos == <span class="num">0</span>) { <span class="fn">deleteBeg</span>(head); <span class="kw">return</span>; }
+    <span class="ty">Node</span>* t = *head;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; pos-<span class="num">1</span> &amp;&amp; t->next; i++)
+        t = t->next;
+    <span class="kw">if</span> (!t->next) <span class="kw">return</span>;        <span class="cm">// out of range</span>
+    <span class="ty">Node</span>* del = t->next;
+    t->next = del->next;
+    <span class="fn">free</span>(del);
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRAVERSE TAB -->
+  <div class="tab-pane" id="ops-traverse">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">🚶 Traverse List</div>
+        <div class="ctrl-row">
+          <button class="btn btn-yellow" onclick="opTraverse()">▶ Animate Traversal</button>
+          <div class="speed-row">
+            <span>Speed:</span>
+            <input type="range" id="trav-speed" min="1" max="5" value="3">
+          </div>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">void</span> <span class="fn">traverse</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* curr = head;
+    <span class="kw">while</span> (curr != <span class="num">NULL</span>) {
+        printf(<span class="st">"%d → "</span>, curr->data);
+        curr = curr->next;
+    }
+    printf(<span class="st">"NULL\n"</span>);
+}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔍 Search by Value</div>
+        <div class="ctrl-row">
+          <label class="ctrl-label">Value:</label>
+          <input type="number" class="ctrl-input" id="search-val" value="20" min="-999" max="999">
+          <button class="btn btn-yellow" onclick="opSearch()">🔍 Search</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">int</span> <span class="fn">search</span>(<span class="ty">Node</span>* head, <span class="kw">int</span> key) {
+    <span class="ty">Node</span>* curr = head;
+    <span class="kw">int</span> idx = <span class="num">0</span>;
+    <span class="kw">while</span> (curr != <span class="num">NULL</span>) {
+        <span class="kw">if</span> (curr->data == key)
+            <span class="kw">return</span> idx; <span class="cm">// found</span>
+        curr = curr->next;
+        idx++;
+    }
+    <span class="kw">return</span> -<span class="num">1</span>; <span class="cm">// not found</span>
+}</div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-row" style="margin-top:4px">
+      <button class="btn btn-ghost" onclick="opReset()">🔄 Reset List</button>
+      <button class="btn btn-ghost" onclick="opClear()">🗑️ Clear All</button>
+    </div>
+  </div>
+</div><!-- end page-operations -->
+
+
+<!-- ============================================================ -->
+<!-- PAGE: ALGORITHMS -->
+<!-- ============================================================ -->
+<div class="page" id="page-algorithms">
+  <div class="page-header">
+    <h1>🧮 Key Algorithms</h1>
+    <p>Animated, step-by-step execution of the most important linked list algorithms in C.</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('algo','reverse')">Reverse</button>
+    <button class="tab-btn" onclick="switchTab('algo','middle')">Find Middle</button>
+    <button class="tab-btn" onclick="switchTab('algo','cycle')">Detect Cycle</button>
+    <button class="tab-btn" onclick="switchTab('algo','palindrome')">Palindrome</button>
+    <button class="tab-btn" onclick="switchTab('algo','oddeven')">Odd-Even</button>
+  </div>
+
+  <!-- REVERSE -->
+  <div class="tab-pane active" id="algo-reverse">
+    <div class="algo-card">
+      <div class="algo-header">
+        <h3>🔄 Reverse Linked List</h3>
+        <div class="badges" style="margin-top:6px">
+          <span class="badge badge-time">Time: O(n)</span>
+          <span class="badge badge-space">Space: O(1)</span>
+          <span class="badge badge-easy">Easy</span>
+        </div>
+      </div>
+      <div class="algo-body">
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Reverse a singly linked list in-place using three pointers: <code>prev</code>, <code>curr</code>, <code>next</code>. Classic interview question.</p>
+        <div class="viz-box" style="min-height:180px;">
+          <svg id="rev-svg" height="160" viewBox="0 0 700 160"></svg>
+        </div>
+        <div class="step-box" id="rev-step">Press ▶ to start animation</div>
+        <div class="ctrl-row">
+          <button class="btn btn-blue" id="rev-play-btn" onclick="algoReverse()">▶ Play</button>
+          <button class="btn btn-ghost" onclick="algoReverseReset()">↺ Reset</button>
+          <div class="speed-row">
+            <span>Speed:</span><input type="range" id="rev-speed" min="1" max="5" value="3">
+          </div>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block" id="rev-code"><span class="ty">Node</span>* <span class="fn">reverse</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* prev = <span class="num">NULL</span>;
+    <span class="ty">Node</span>* curr = head;
+    <span class="ty">Node</span>* next = <span class="num">NULL</span>;
+
+    <span class="kw">while</span> (curr != <span class="num">NULL</span>) {
+        next       = curr->next;  <span class="cm">/* save next     */</span>
+        curr->next = prev;        <span class="cm">/* reverse link  */</span>
+        prev       = curr;        <span class="cm">/* move prev     */</span>
+        curr       = next;        <span class="cm">/* move curr     */</span>
+    }
+    <span class="kw">return</span> prev; <span class="cm">/* new head */</span>
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE -->
+  <div class="tab-pane" id="algo-middle">
+    <div class="algo-card">
+      <div class="algo-header">
+        <h3>🐢🐇 Find Middle (Slow/Fast Pointer)</h3>
+        <div class="badges" style="margin-top:6px">
+          <span class="badge badge-time">Time: O(n)</span>
+          <span class="badge badge-space">Space: O(1)</span>
+          <span class="badge badge-easy">Easy</span>
+        </div>
+      </div>
+      <div class="algo-body">
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Use two pointers: <code>slow</code> moves 1 step, <code>fast</code> moves 2 steps. When <code>fast</code> reaches the end, <code>slow</code> is at the middle. Also works for cycle detection.</p>
+        <div class="viz-box" style="min-height:180px;">
+          <svg id="mid-svg" height="160" viewBox="0 0 700 160"></svg>
+        </div>
+        <div class="step-box" id="mid-step">Press ▶ to start animation</div>
+        <div class="ctrl-row">
+          <button class="btn btn-blue" onclick="algoMiddle()">▶ Play</button>
+          <button class="btn btn-ghost" onclick="algoMiddleReset()">↺ Reset</button>
+          <div class="speed-row"><span>Speed:</span><input type="range" id="mid-speed" min="1" max="5" value="3"></div>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="ty">Node</span>* <span class="fn">findMiddle</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* slow = head;
+    <span class="ty">Node</span>* fast = head;
+
+    <span class="kw">while</span> (fast != <span class="num">NULL</span> &amp;&amp; fast->next != <span class="num">NULL</span>) {
+        slow = slow->next;        <span class="cm">/* +1 step */</span>
+        fast = fast->next->next;  <span class="cm">/* +2 steps */</span>
+    }
+    <span class="kw">return</span> slow; <span class="cm">/* middle node */</span>
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CYCLE -->
+  <div class="tab-pane" id="algo-cycle">
+    <div class="algo-card">
+      <div class="algo-header">
+        <h3>🔁 Detect Cycle — Floyd's Algorithm</h3>
+        <div class="badges" style="margin-top:6px">
+          <span class="badge badge-time">Time: O(n)</span>
+          <span class="badge badge-space">Space: O(1)</span>
+          <span class="badge badge-med">Medium</span>
+        </div>
+      </div>
+      <div class="algo-body">
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Floyd's "tortoise and hare" algorithm. If a cycle exists, slow and fast pointers will eventually meet inside the cycle.</p>
+        <div class="viz-box" style="min-height:200px;">
+          <svg id="cycle-svg" height="185" viewBox="0 0 700 185"></svg>
+        </div>
+        <div class="step-box" id="cycle-step">Press ▶ to animate cycle detection</div>
+        <div class="ctrl-row">
+          <button class="btn btn-blue" onclick="algoCycle()">▶ Play</button>
+          <button class="btn btn-ghost" onclick="algoCycleReset()">↺ Reset</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">int</span> <span class="fn">hasCycle</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* slow = head;
+    <span class="ty">Node</span>* fast = head;
+
+    <span class="kw">while</span> (fast != <span class="num">NULL</span> &amp;&amp; fast->next != <span class="num">NULL</span>) {
+        slow = slow->next;
+        fast = fast->next->next;
+        <span class="kw">if</span> (slow == fast)
+            <span class="kw">return</span> <span class="num">1</span>; <span class="cm">/* cycle detected! */</span>
+    }
+    <span class="kw">return</span> <span class="num">0</span>; <span class="cm">/* no cycle */</span>
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALINDROME -->
+  <div class="tab-pane" id="algo-palindrome">
+    <div class="algo-card">
+      <div class="algo-header">
+        <h3>🔤 Palindrome Linked List</h3>
+        <div class="badges" style="margin-top:6px">
+          <span class="badge badge-time">Time: O(n)</span>
+          <span class="badge badge-space">Space: O(1)</span>
+          <span class="badge badge-med">Medium</span>
+        </div>
+      </div>
+      <div class="algo-body">
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Find middle → reverse second half → compare from both ends. O(1) space solution using in-place reversal.</p>
+        <div class="viz-box" style="min-height:200px;">
+          <svg id="pal-svg" height="185" viewBox="0 0 700 185"></svg>
+        </div>
+        <div class="step-box" id="pal-step">Press ▶ to start</div>
+        <div class="ctrl-row">
+          <button class="btn btn-blue" onclick="algoPalindrome()">▶ Play (1→2→2→1)</button>
+          <button class="btn btn-ghost" onclick="algoPalindromeReset()">↺ Reset</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="kw">int</span> <span class="fn">isPalindrome</span>(<span class="ty">Node</span>* head) {
+    <span class="kw">if</span> (!head || !head->next) <span class="kw">return</span> <span class="num">1</span>;
+
+    <span class="cm">/* Step 1: find middle */</span>
+    <span class="ty">Node</span> *slow = head, *fast = head;
+    <span class="kw">while</span> (fast->next &amp;&amp; fast->next->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    <span class="cm">/* Step 2: reverse second half */</span>
+    <span class="ty">Node</span>* second = <span class="fn">reverse</span>(slow->next);
+
+    <span class="cm">/* Step 3: compare */</span>
+    <span class="ty">Node</span> *p1 = head, *p2 = second;
+    <span class="kw">int</span> result = <span class="num">1</span>;
+    <span class="kw">while</span> (p2) {
+        <span class="kw">if</span> (p1->data != p2->data) { result = <span class="num">0</span>; <span class="kw">break</span>; }
+        p1 = p1->next; p2 = p2->next;
+    }
+    <span class="fn">reverse</span>(second); <span class="cm">/* restore list */</span>
+    <span class="kw">return</span> result;
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ODD-EVEN -->
+  <div class="tab-pane" id="algo-oddeven">
+    <div class="algo-card">
+      <div class="algo-header">
+        <h3>🎲 Odd-Even Linked List (by index)</h3>
+        <div class="badges" style="margin-top:6px">
+          <span class="badge badge-time">Time: O(n)</span>
+          <span class="badge badge-space">Space: O(1)</span>
+          <span class="badge badge-med">Medium</span>
+        </div>
+      </div>
+      <div class="algo-body">
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Group nodes at odd indices first, then even-index nodes. Rearrange by pointer manipulation without creating new nodes.</p>
+        <div class="viz-box" style="min-height:180px;">
+          <svg id="oe-svg" height="165" viewBox="0 0 700 165"></svg>
+        </div>
+        <div class="step-box" id="oe-step">Press ▶ to start</div>
+        <div class="ctrl-row">
+          <button class="btn btn-blue" onclick="algoOddEven()">▶ Play</button>
+          <button class="btn btn-ghost" onclick="algoOddEvenReset()">↺ Reset</button>
+        </div>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <div class="code-block"><span class="ty">Node</span>* <span class="fn">oddEvenList</span>(<span class="ty">Node</span>* head) {
+    <span class="kw">if</span> (!head) <span class="kw">return</span> head;
+    <span class="ty">Node</span> *odd  = head;
+    <span class="ty">Node</span> *even = head->next;
+    <span class="ty">Node</span> *evenHead = even;
+
+    <span class="kw">while</span> (even &amp;&amp; even->next) {
+        odd->next  = even->next;   <span class="cm">/* link odd nodes  */</span>
+        odd        = odd->next;
+        even->next = odd->next;    <span class="cm">/* link even nodes */</span>
+        even       = even->next;
+    }
+    odd->next = evenHead; <span class="cm">/* join lists */</span>
+    <span class="kw">return</span> head;
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- end page-algorithms -->
+
+
+<!-- ============================================================ -->
+<!-- PAGE: INTERVIEW -->
+<!-- ============================================================ -->
+<div class="page" id="page-interview">
+  <div class="page-header">
+    <h1>💼 Interview Prep</h1>
+    <p>Top linked list interview problems with animations, C code, and common mistakes.</p>
+  </div>
+
+  <div id="interview-list"></div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- PAGE: DEBUG MODE -->
+<!-- ============================================================ -->
+<div class="page" id="page-debug">
+  <div class="page-header">
+    <h1>🐛 Debug Mode — C Pitfalls</h1>
+    <p>Simulate real C errors: segmentation faults, memory leaks, dangling pointers. Learn to recognize and fix them.</p>
+  </div>
+
+  <div class="alert alert-info" style="margin-bottom:20px">
+    <span class="alert-icon">ℹ️</span>
+    <div>This section simulates what happens in memory when common C linked-list mistakes are made. Click each scenario to expand it and see the bug, the effect, and the fix.</div>
+  </div>
+
+  <div id="debug-list"></div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- PAGE: QUIZ -->
+<!-- ============================================================ -->
+<div class="page" id="page-quiz">
+  <div class="page-header">
+    <h1>🎯 Quiz</h1>
+    <p>Test your understanding of pointers and linked lists in C.</p>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title" style="margin:0">Question <span id="q-current">1</span> / <span id="q-total">10</span></div>
+      <div>Score: <strong id="q-score" style="color:var(--accent)">0</strong></div>
+    </div>
+    <div class="quiz-progress">
+      <div class="quiz-bar-wrap"><div class="quiz-bar" id="q-bar" style="width:0%"></div></div>
+      <div class="quiz-count" id="q-pct">0%</div>
+    </div>
+    <div id="quiz-body"></div>
+    <div class="ctrl-row" style="margin-top:16px">
+      <button class="btn btn-blue" id="q-next-btn" onclick="quizNext()" disabled>Next Question →</button>
+      <button class="btn btn-ghost" onclick="quizRestart()">↺ Restart</button>
+    </div>
+  </div>
+</div>
+
+</main><!-- end main -->
+
+<script>
+// ================================================================
+//  GLOBAL STATE
+// ================================================================
+let ll = [];          // linked list: array of {data, addr}
+let animRunning = false;
+let animTimer = null;
+const ADDR_BASE = 0x100;
+
+function addr(i) {
+  return '0x' + (ADDR_BASE + i * 0x10).toString(16).toUpperCase();
+}
+
+// ================================================================
+//  NAVIGATION
+// ================================================================
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const page = el.dataset.page;
+    document.getElementById('page-' + page).classList.add('active');
+    if (page === 'operations') renderOps();
+    if (page === 'algorithms') { renderAlgoAll(); }
+    if (page === 'interview') renderInterview();
+    if (page === 'debug') renderDebug();
+    if (page === 'quiz') initQuiz();
+  });
+});
+
+function switchTab(group, tab) {
+  const panes = document.querySelectorAll(`[id^="${group}-"]`);
+  panes.forEach(p => p.classList.remove('active'));
+  const btns = document.querySelectorAll(`.tab-btn`);
+  // find buttons in same tab-bar
+  const target = document.getElementById(`${group}-${tab}`);
+  if (target) {
+    // deactivate siblings
+    const allPanes = target.closest('.page').querySelectorAll('.tab-pane');
+    allPanes.forEach(p => p.classList.remove('active'));
+    target.classList.add('active');
+  }
+  // activate correct btn
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${group}','${tab}'`)) {
+      // deactivate siblings in same bar
+      b.closest('.tab-bar').querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    }
+  });
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+}
+
+function copyCode(btn) {
+  const code = btn.nextElementSibling;
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// ================================================================
+//  SVG DRAW HELPERS
+// ================================================================
+const NODE_W = 80, NODE_H = 44, NODE_GAP = 28, NODE_Y = 38;
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  return el;
+}
+
+function drawNode(svg, x, y, data, addrStr, state) {
+  // state: 'normal' | 'current' | 'processed' | 'modified'
+  const colors = {
+    normal:    { fill: 'var(--node-bg)',  stroke: 'var(--node-bdr)',  text: '#88bdff' },
+    current:   { fill: '#4a3a00',         stroke: 'var(--yellow)',    text: 'var(--yellow)' },
+    processed: { fill: '#0c3320',         stroke: 'var(--green)',     text: 'var(--green)' },
+    modified:  { fill: '#4a0c0c',         stroke: 'var(--red)',       text: 'var(--red)' },
+    highlight: { fill: '#1a1a40',         stroke: 'var(--purple)',    text: 'var(--purple)' },
+  };
+  const c = colors[state] || colors.normal;
+  const g = svgEl('g', {});
+
+  // data box (60% width)
+  const dw = Math.floor(NODE_W * 0.58);
+  g.appendChild(svgEl('rect', { x, y, width: dw, height: NODE_H, rx: 4,
+    fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5 }));
+  const dt = svgEl('text', { x: x + dw/2, y: y + NODE_H/2,
+    'text-anchor': 'middle', 'dominant-baseline': 'central',
+    fill: c.text, 'font-family': 'monospace', 'font-size': 13, 'font-weight': '600' });
+  dt.textContent = String(data);
+  g.appendChild(dt);
+
+  // next box
+  const nx = x + dw, nw = NODE_W - dw;
+  g.appendChild(svgEl('rect', { x: nx, y, width: nw, height: NODE_H, rx: 4,
+    fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5 }));
+  const nt = svgEl('text', { x: nx + nw/2, y: y + NODE_H/2 - 3,
+    'text-anchor': 'middle', 'dominant-baseline': 'central',
+    fill: 'var(--text3)', 'font-size': 9, 'font-family': 'monospace' });
+  nt.textContent = 'next';
+  g.appendChild(nt);
+
+  // address label
+  if (addrStr) {
+    const al = svgEl('text', { x: x + NODE_W/2, y: y + NODE_H + 14,
+      'text-anchor': 'middle', fill: 'var(--text3)', 'font-size': 10, 'font-family': 'monospace' });
+    al.textContent = addrStr;
+    g.appendChild(al);
+  }
+
+  svg.appendChild(g);
+  return g;
+}
+
+function drawArrow(svg, x1, y1, x2, y2, color) {
+  color = color || 'var(--text3)';
+  const line = svgEl('line', { x1, y1, x2: x2 - 8, y2,
+    stroke: color, 'stroke-width': 1.5, 'marker-end': `url(#arr-${svgArrowId(svg)})` });
+  svg.appendChild(line);
+  return line;
+}
+
+function svgArrowId(svg) {
+  // ensure arrow marker exists
+  let defs = svg.querySelector('defs');
+  if (!defs) {
+    defs = svgEl('defs', {});
+    svg.insertBefore(defs, svg.firstChild);
+    const m = svgEl('marker', { id: 'arr-' + svg.id, viewBox: '0 0 10 10',
+      refX: 8, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' });
+    const p = svgEl('path', { d: 'M2 2L8 5L2 8', fill: 'none', stroke: 'var(--text2)',
+      'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+    m.appendChild(p);
+    defs.appendChild(m);
+  }
+  return svg.id;
+}
+
+function clearSvg(svg) {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  // re-init arrow marker
+  svgArrowId(svg);
+}
+
+function drawList(svgId, nodes, states) {
+  // nodes: [{data, addr}], states: array of 'normal'|'current'|'processed'|'modified'
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  clearSvg(svg);
+  states = states || [];
+
+  let totalW = nodes.length * (NODE_W + NODE_GAP) + 60;
+  svg.setAttribute('viewBox', `0 0 ${Math.max(totalW, 300)} 90`);
+  svg.setAttribute('height', '90');
+
+  nodes.forEach((node, i) => {
+    const x = 20 + i * (NODE_W + NODE_GAP);
+    const state = states[i] || 'normal';
+    drawNode(svg, x, NODE_Y - 20, node.data, node.addr, state);
+
+    if (i < nodes.length - 1) {
+      // arrow
+      const ax1 = x + NODE_W;
+      const ax2 = x + NODE_W + NODE_GAP;
+      const ay = NODE_Y - 20 + NODE_H / 2;
+      const line = svgEl('line', { x1: ax1, y1: ay, x2: ax2 - 6, y2: ay,
+        stroke: 'var(--text3)', 'stroke-width': 1.5 });
+      svg.appendChild(line);
+      // arrowhead
+      const apath = svgEl('polygon', {
+        points: `${ax2-6},${ay-4} ${ax2+2},${ay} ${ax2-6},${ay+4}`,
+        fill: 'var(--text3)'
+      });
+      svg.appendChild(apath);
+    }
+  });
+
+  // NULL terminator
+  if (nodes.length > 0) {
+    const nx = 20 + nodes.length * (NODE_W + NODE_GAP);
+    const ny = NODE_Y - 20 + NODE_H/2;
+    const line = svgEl('line', { x1: nx - NODE_GAP, y1: ny, x2: nx + 10, y2: ny,
+      stroke: 'var(--text3)', 'stroke-width': 1.5 });
+    svg.appendChild(line);
+    const nullRect = svgEl('rect', { x: nx + 10, y: NODE_Y - 20 + 4, width: 40, height: NODE_H - 8,
+      rx: 4, fill: 'var(--bg3)', stroke: 'var(--text3)', 'stroke-width': 1 });
+    svg.appendChild(nullRect);
+    const nullT = svgEl('text', { x: nx + 30, y: NODE_Y - 20 + NODE_H/2,
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      fill: 'var(--text3)', 'font-size': 11, 'font-family': 'monospace' });
+    nullT.textContent = 'NULL';
+    svg.appendChild(nullT);
+  } else {
+    const nullT = svgEl('text', { x: 30, y: NODE_Y,
+      fill: 'var(--text3)', 'font-size': 12, 'font-family': 'monospace' });
+    nullT.textContent = 'Empty list (head = NULL)';
+    svg.appendChild(nullT);
+  }
+}
+
+// ================================================================
+//  BASICS PAGE — static diagrams
+// ================================================================
+function initBasics() {
+  // intro list
+  const introList = [
+    {data:10, addr:'0x100'}, {data:20, addr:'0x200'}, {data:30, addr:'0x300'}
+  ];
+  drawList('basics-intro-svg', introList, []);
+
+  // pointer viz
+  drawPtrViz();
+  drawNodeLayout();
+  drawHeapViz();
+}
+
+function drawPtrViz() {
+  const svg = document.getElementById('ptr-viz-svg');
+  if (!svg) return;
+  clearSvg(svg);
+  svg.setAttribute('viewBox', '0 0 580 110');
+
+  function box(x, y, w, h, label, val, color, sub) {
+    const g = svgEl('g', {});
+    g.appendChild(svgEl('rect', { x, y, width: w, height: h, rx: 5,
+      fill: color + '22', stroke: color, 'stroke-width': 1.5 }));
+    const lt = svgEl('text', { x: x+8, y: y+14, fill: 'var(--text3)', 'font-size': 10 });
+    lt.textContent = label;
+    g.appendChild(lt);
+    const vt = svgEl('text', { x: x+w/2, y: y+h/2+5, 'text-anchor': 'middle',
+      fill: color, 'font-size': 15, 'font-family': 'monospace', 'font-weight': '700' });
+    vt.textContent = val;
+    g.appendChild(vt);
+    if (sub) {
+      const st = svgEl('text', { x: x+w/2, y: y+h-6, 'text-anchor': 'middle',
+        fill: 'var(--text3)', 'font-size': 9, 'font-family': 'monospace' });
+      st.textContent = sub;
+      g.appendChild(st);
+    }
+    svg.appendChild(g);
+  }
+
+  box(30, 20, 100, 70, 'int x', '42', '#3fb950', 'addr: 0x200');
+  box(200, 20, 130, 70, 'int* ptr', '0x200', '#58a6ff', 'addr: 0x300');
+  box(420, 20, 130, 70, '*ptr', '42', '#d2a8ff', '(same as x)');
+
+  // arrow ptr → x
+  const arr1 = svgEl('line', { x1: 330, y1: 55, x2: 138, y2: 55,
+    stroke: '#58a6ff', 'stroke-width': 1.5, 'marker-end': 'url(#arr-ptr-viz-svg)' });
+  svg.appendChild(arr1);
+  const a1t = svgEl('text', { x: 235, y: 48, 'text-anchor': 'middle', fill: '#58a6ff', 'font-size': 10 });
+  a1t.textContent = 'points to';
+  svg.appendChild(a1t);
+
+  // arrow *ptr reads x
+  const arr2 = svgEl('line', { x1: 420, y1: 55, x2: 138, y2: 55,
+    stroke: '#d2a8ff', 'stroke-width': 1, 'stroke-dasharray': '4 3', 'marker-end': 'url(#arr-ptr-viz-svg)' });
+  svg.appendChild(arr2);
+}
+
+function drawNodeLayout() {
+  const svg = document.getElementById('node-layout-svg');
+  if (!svg) return;
+  clearSvg(svg);
+  svg.setAttribute('viewBox', '0 0 600 120');
+
+  // outer rect
+  svg.appendChild(svgEl('rect', { x: 80, y: 20, width: 300, height: 60, rx: 8,
+    fill: 'var(--node-bg)', stroke: 'var(--node-bdr)', 'stroke-width': 2 }));
+
+  // data field
+  svg.appendChild(svgEl('rect', { x: 80, y: 20, width: 120, height: 60, rx: 0,
+    fill: 'none', stroke: 'var(--node-bdr)', 'stroke-width': 1, 'stroke-dasharray': '4 2' }));
+  const dt = svgEl('text', { x: 140, y: 50, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+    fill: '#88bdff', 'font-size': 14, 'font-family': 'monospace', 'font-weight': '600' });
+  dt.textContent = 'data';
+  svg.appendChild(dt);
+  const ds = svgEl('text', { x: 140, y: 66, 'text-anchor': 'middle',
+    fill: 'var(--text3)', 'font-size': 10 });
+  ds.textContent = '4 bytes (int)';
+  svg.appendChild(ds);
+
+  // next field
+  const nt = svgEl('text', { x: 260, y: 50, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+    fill: '#88bdff', 'font-size': 14, 'font-family': 'monospace', 'font-weight': '600' });
+  nt.textContent = '*next';
+  svg.appendChild(nt);
+  const ns = svgEl('text', { x: 260, y: 66, 'text-anchor': 'middle',
+    fill: 'var(--text3)', 'font-size': 10 });
+  ns.textContent = '8 bytes (ptr)';
+  svg.appendChild(ns);
+
+  // labels
+  const lb1 = svgEl('text', { x: 80, y: 98, fill: 'var(--text2)', 'font-size': 11, 'font-family': 'monospace' });
+  lb1.textContent = '0x100';
+  svg.appendChild(lb1);
+  const lb2 = svgEl('text', { x: 195, y: 98, fill: 'var(--text2)', 'font-size': 11, 'font-family': 'monospace' });
+  lb2.textContent = '0x104';
+  svg.appendChild(lb2);
+
+  // arrow out
+  svg.appendChild(svgEl('line', { x1: 380, y1: 50, x2: 440, y2: 50,
+    stroke: 'var(--accent)', 'stroke-width': 2, 'marker-end': 'url(#arr-node-layout-svg)' }));
+  const at = svgEl('text', { x: 470, y: 54, fill: 'var(--text2)', 'font-size': 11 });
+  at.textContent = 'next node / NULL';
+  svg.appendChild(at);
+}
+
+function drawHeapViz() {
+  const svg = document.getElementById('heap-viz-svg');
+  if (!svg) return;
+  clearSvg(svg);
+  svg.setAttribute('viewBox', '0 0 680 155');
+
+  const nodes = [{data:10,addr:'0x100'},{data:20,addr:'0x200'},{data:30,addr:'0x300'}];
+  // draw on heap band
+  svg.appendChild(svgEl('rect', { x: 10, y: 10, width: 660, height: 130, rx: 8,
+    fill: 'none', stroke: 'var(--border)', 'stroke-width': 1, 'stroke-dasharray': '6 3' }));
+  const ht = svgEl('text', { x: 24, y: 26, fill: 'var(--text3)', 'font-size': 10, 'font-weight': '600' });
+  ht.textContent = 'HEAP MEMORY';
+  svg.appendChild(ht);
+
+  nodes.forEach((n, i) => {
+    const x = 40 + i * 200;
+    drawNode(svg, x, 38, n.data, n.addr, 'normal');
+    if (i < nodes.length - 1) {
+      const ax1 = x + NODE_W, ax2 = x + 200;
+      const ay = 38 + NODE_H/2;
+      svg.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2 - 8, y2: ay,
+        stroke: 'var(--accent)', 'stroke-width': 1.5, 'stroke-dasharray': '5 3' }));
+      const ap = svgEl('polygon', {
+        points: `${ax2-8},${ay-4} ${ax2},${ay} ${ax2-8},${ay+4}`,
+        fill: 'var(--accent)'
+      });
+      svg.appendChild(ap);
+      // addr label on arrow
+      const al = svgEl('text', { x: (ax1+ax2)/2, y: ay - 6,
+        'text-anchor': 'middle', fill: 'var(--accent)', 'font-size': 10, 'font-family': 'monospace' });
+      al.textContent = nodes[i+1].addr;
+      svg.appendChild(al);
+    }
+  });
+
+  // NULL
+  const nx = 40 + 3 * 200;
+  const ny = 38 + NODE_H/2;
+  svg.appendChild(svgEl('text', { x: nx, y: ny + 4,
+    fill: 'var(--text3)', 'font-size': 12, 'font-family': 'monospace' })).textContent = 'NULL';
+}
+
+initBasics();
+
+// ================================================================
+//  OPERATIONS PAGE
+// ================================================================
+ll = [{data:10,addr:'0x100'},{data:20,addr:'0x110'},{data:30,addr:'0x120'},{data:40,addr:'0x130'}];
+
+function renderOps() {
+  rebuildAddrs();
+  drawList('ops-svg', ll, []);
+  const box = document.getElementById('ops-svg');
+  if (box) box.closest('.viz-box').style.minHeight = '120px';
+}
+
+function rebuildAddrs() {
+  ll.forEach((n, i) => n.addr = '0x' + (0x100 + i * 0x10).toString(16).toUpperCase());
+}
+
+function setStep(msg, type) {
+  const box = document.getElementById('ops-step-box');
+  if (!box) return;
+  box.className = 'step-box ' + (type || '');
+  box.innerHTML = msg;
+}
+
+async function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function getSpeed(sliderId) {
+  const s = document.getElementById(sliderId);
+  const v = s ? parseInt(s.value) : 3;
+  return [800, 600, 400, 250, 120][v - 1];
+}
+
+async function opInsertBeg() {
+  if (animRunning) return;
+  animRunning = true;
+  const val = parseInt(document.getElementById('ins-beg-val').value) || 5;
+  setStep(`<strong>Step 1:</strong> malloc() new node with data = ${val}`, 'warn');
+  await delay(500);
+  const newNode = { data: val, addr: '0x0F0' };
+  ll.unshift(newNode);
+  rebuildAddrs();
+  drawList('ops-svg', ll, ['modified', ...ll.slice(1).map(() => 'normal')]);
+  setStep(`<strong>Step 2:</strong> new->next = head (0x${(0x100).toString(16).toUpperCase()})`, '');
+  await delay(500);
+  setStep(`<strong>Step 3:</strong> head = new node. Done! ✓`, 'ok');
+  drawList('ops-svg', ll, []);
+  animRunning = false;
+}
+
+async function opInsertEnd() {
+  if (animRunning) return;
+  animRunning = true;
+  const val = parseInt(document.getElementById('ins-end-val').value) || 9;
+  const states = ll.map(() => 'normal');
+  for (let i = 0; i < ll.length; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>Traversing:</strong> temp = ${ll[i].addr} (data=${ll[i].data}) — checking if next is NULL`);
+    await delay(400);
+    if (i < ll.length - 1) states[i] = 'processed';
+  }
+  const newNode = { data: val, addr: '0x0F0' };
+  ll.push(newNode);
+  rebuildAddrs();
+  const s2 = ll.map((_,i) => i === ll.length-1 ? 'modified' : 'processed');
+  drawList('ops-svg', ll, s2);
+  setStep(`<strong>Done!</strong> temp->next = new node (${val}). ✓`, 'ok');
+  await delay(600);
+  drawList('ops-svg', ll, []);
+  animRunning = false;
+}
+
+async function opInsertPos() {
+  if (animRunning) return;
+  animRunning = true;
+  const val = parseInt(document.getElementById('ins-pos-val').value) || 7;
+  let pos  = parseInt(document.getElementById('ins-pos-idx').value) || 1;
+  pos = Math.max(0, Math.min(pos, ll.length));
+
+  if (pos === 0) { await opInsertBeg(); animRunning = false; return; }
+
+  const states = ll.map(() => 'normal');
+  for (let i = 0; i < pos - 1 && i < ll.length; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>Traversing to pos ${pos}:</strong> at index ${i}`);
+    await delay(400);
+    states[i] = 'processed';
+  }
+
+  ll.splice(pos, 0, { data: val, addr: '0x0F0' });
+  rebuildAddrs();
+  const s2 = ll.map((_,i) => i === pos ? 'modified' : i < pos ? 'processed' : 'normal');
+  drawList('ops-svg', ll, s2);
+  setStep(`<strong>Inserted</strong> ${val} at position ${pos}. Pointers rewired. ✓`, 'ok');
+  await delay(600);
+  drawList('ops-svg', ll, []);
+  animRunning = false;
+}
+
+async function opDeleteBeg() {
+  if (animRunning || ll.length === 0) {
+    setStep('List is empty!', 'danger'); return;
+  }
+  animRunning = true;
+  const old = ll[0];
+  drawList('ops-svg', ll, ['modified', ...ll.slice(1).map(() => 'normal')]);
+  setStep(`<strong>Step 1:</strong> temp = head (${old.addr}, data=${old.data})`);
+  await delay(500);
+  setStep(`<strong>Step 2:</strong> head = head->next`);
+  await delay(400);
+  ll.shift();
+  rebuildAddrs();
+  setStep(`<strong>Step 3:</strong> free(temp) — memory at ${old.addr} released. ✓`, 'ok');
+  drawList('ops-svg', ll, []);
+  animRunning = false;
+}
+
+async function opDeleteEnd() {
+  if (animRunning || ll.length === 0) {
+    setStep('List is empty!', 'danger'); return;
+  }
+  animRunning = true;
+  const states = ll.map(() => 'normal');
+  for (let i = 0; i < ll.length - 1; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>Traversing to tail:</strong> index ${i}`);
+    await delay(350);
+    states[i] = 'processed';
+  }
+  states[ll.length - 1] = 'modified';
+  drawList('ops-svg', ll, [...states]);
+  const old = ll[ll.length - 1];
+  setStep(`<strong>Found tail:</strong> ${old.addr} (data=${old.data}) — freeing...`);
+  await delay(500);
+  ll.pop();
+  rebuildAddrs();
+  drawList('ops-svg', ll, []);
+  setStep(`<strong>Done!</strong> Last node freed, prev->next = NULL. ✓`, 'ok');
+  animRunning = false;
+}
+
+async function opDeletePos() {
+  if (animRunning || ll.length === 0) {
+    setStep('List is empty!', 'danger'); return;
+  }
+  animRunning = true;
+  let pos = parseInt(document.getElementById('del-pos-idx').value) || 1;
+  pos = Math.max(0, Math.min(pos, ll.length - 1));
+
+  if (pos === 0) { await opDeleteBeg(); animRunning = false; return; }
+
+  const states = ll.map(() => 'normal');
+  for (let i = 0; i < pos - 1; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>Traversing:</strong> at index ${i}`);
+    await delay(350);
+    states[i] = 'processed';
+  }
+  states[pos] = 'modified';
+  drawList('ops-svg', ll, [...states]);
+  setStep(`<strong>Deleting:</strong> node at position ${pos} (data=${ll[pos].data}) — rewiring pointers...`);
+  await delay(500);
+  ll.splice(pos, 1);
+  rebuildAddrs();
+  drawList('ops-svg', ll, []);
+  setStep(`<strong>Done!</strong> Node deleted and freed. ✓`, 'ok');
+  animRunning = false;
+}
+
+async function opTraverse() {
+  if (animRunning) return;
+  animRunning = true;
+  const spd = getSpeed('trav-speed');
+  const states = ll.map(() => 'normal');
+  for (let i = 0; i < ll.length; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>curr = ${ll[i].addr}:</strong> printf("%d", curr->data) → <strong>${ll[i].data}</strong>`);
+    await delay(spd);
+    states[i] = 'processed';
+  }
+  drawList('ops-svg', ll, states);
+  setStep(`<strong>Traversal complete!</strong> All nodes visited. curr = NULL, loop ends. ✓`, 'ok');
+  await delay(600);
+  drawList('ops-svg', ll, []);
+  animRunning = false;
+}
+
+async function opSearch() {
+  if (animRunning) return;
+  animRunning = true;
+  const key = parseInt(document.getElementById('search-val').value) || 20;
+  const states = ll.map(() => 'normal');
+  let found = -1;
+  for (let i = 0; i < ll.length; i++) {
+    states[i] = 'current';
+    drawList('ops-svg', ll, [...states]);
+    setStep(`<strong>Checking ${ll[i].addr}:</strong> curr->data = ${ll[i].data} == ${key}? ${ll[i].data === key ? '✅ YES!' : '❌ No'}`);
+    await delay(450);
+    if (ll[i].data === key) { found = i; states[i] = 'processed'; break; }
+    states[i] = 'processed';
+  }
+  drawList('ops-svg', ll, states);
+  if (found >= 0) setStep(`<strong>Found!</strong> Value ${key} is at index ${found} (${ll[found].addr}). ✓`, 'ok');
+  else setStep(`<strong>Not found.</strong> Value ${key} not in list. Return -1.`, 'danger');
+  animRunning = false;
+}
+
+function opReset() {
+  animRunning = false;
+  ll = [{data:10,addr:'0x100'},{data:20,addr:'0x110'},{data:30,addr:'0x120'},{data:40,addr:'0x130'}];
+  renderOps();
+  setStep('List reset to [10 → 20 → 30 → 40]');
+}
+
+function opClear() {
+  animRunning = false;
+  ll = [];
+  renderOps();
+  setStep('List cleared. head = NULL');
+}
+
+// ================================================================
+//  ALGORITHMS PAGE
+// ================================================================
+let algoRevList  = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+let algoMidList  = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+let algoCycleList= [{data:1},{data:2},{data:3},{data:4},{data:5}];
+let algoPalList  = [{data:1},{data:2},{data:2},{data:1}];
+let algoOEList   = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+
+function buildAlgoAddrs(arr) { arr.forEach((n,i) => n.addr = '0x'+(0x100+i*0x10).toString(16).toUpperCase()); }
+
+function renderAlgoAll() {
+  buildAlgoAddrs(algoRevList);  drawList('rev-svg',  algoRevList,  []);
+  buildAlgoAddrs(algoMidList);  drawMidSvg(algoMidList, -1, -1);
+  buildAlgoAddrs(algoCycleList);drawCycleSvg(-1, -1);
+  buildAlgoAddrs(algoPalList);  drawList('pal-svg',  algoPalList,  []);
+  buildAlgoAddrs(algoOEList);   drawList('oe-svg',   algoOEList,   []);
+}
+
+// ---- REVERSE ALGO ----
+let revTimer = null;
+async function algoReverse() {
+  algoRevList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoRevList);
+  clearInterval(revTimer);
+  const btn = document.getElementById('rev-play-btn');
+  if (btn) btn.disabled = true;
+
+  let prev = -1; // index, -1 = null
+  let curr = 0;
+  const total = algoRevList.length;
+  const list = [...algoRevList.map(n => ({...n}))];
+  const reversed = [];
+  const stepEl = document.getElementById('rev-step');
+
+  function setRevStep(msg) { if (stepEl) stepEl.innerHTML = msg; }
+  function drawRevState(states) { drawList('rev-svg', list, states); }
+
+  const spd = getSpeed('rev-speed');
+
+  while (curr < total) {
+    // highlight current
+    const st = list.map((_,i) =>
+      i === curr ? 'current' :
+      i < curr ? 'modified' : 'normal'
+    );
+    drawRevState(st);
+    setRevStep(`<strong>prev=</strong>${prev < 0 ? 'NULL' : 'node['+prev+']'} &nbsp; <strong>curr=</strong>node[${curr}] &nbsp; — reversing pointer direction`);
+    await delay(spd);
+    reversed.unshift({...list[curr]});
+    curr++;
+  }
+
+  buildAlgoAddrs(reversed);
+  drawList('rev-svg', reversed, reversed.map(() => 'processed'));
+  setRevStep(`<strong>Done!</strong> List reversed successfully. New head = ${reversed[0].data}. ✓`);
+  if (btn) btn.disabled = false;
+  algoRevList = reversed;
+}
+
+function algoReverseReset() {
+  algoRevList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoRevList);
+  drawList('rev-svg', algoRevList, []);
+  const s = document.getElementById('rev-step');
+  if (s) s.innerHTML = 'Press ▶ to start animation';
+  const btn = document.getElementById('rev-play-btn');
+  if (btn) btn.disabled = false;
+}
+
+// ---- MIDDLE ALGO ----
+function drawMidSvg(list, slow, fast) {
+  const svg = document.getElementById('mid-svg');
+  if (!svg) return;
+  clearSvg(svg);
+  const n = list.length;
+  const totalW = n * (NODE_W + NODE_GAP) + 80;
+  svg.setAttribute('viewBox', `0 0 ${Math.max(totalW,300)} 155`);
+  svg.setAttribute('height', '155');
+
+  list.forEach((node, i) => {
+    const x = 20 + i * (NODE_W + NODE_GAP);
+    let state = 'normal';
+    if (i === slow && i === fast) state = 'modified';
+    else if (i === slow) state = 'current';
+    else if (i === fast) state = 'highlight';
+    drawNode(svg, x, 22, node.data, node.addr, state);
+
+    if (i < n - 1) {
+      const ax1 = x + NODE_W, ax2 = x + NODE_W + NODE_GAP;
+      const ay = 22 + NODE_H/2;
+      svg.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2-6, y2: ay,
+        stroke: 'var(--text3)', 'stroke-width': 1.5 }));
+      svg.appendChild(svgEl('polygon', {
+        points: `${ax2-6},${ay-4} ${ax2+2},${ay} ${ax2-6},${ay+4}`, fill: 'var(--text3)' }));
+    }
+  });
+
+  // NULL
+  const nx = 20 + n * (NODE_W + NODE_GAP);
+  svg.appendChild(svgEl('text', { x: nx, y: 22+NODE_H/2+4,
+    fill: 'var(--text3)', 'font-size': 11, 'font-family': 'monospace' })).textContent = 'NULL';
+
+  // pointer labels
+  const labelY = 80;
+  if (slow >= 0 && slow < n) {
+    const sx = 20 + slow * (NODE_W + NODE_GAP) + NODE_W/2;
+    svg.appendChild(svgEl('line', { x1: sx, y1: labelY - 4, x2: sx, y2: 22+NODE_H,
+      stroke: 'var(--yellow)', 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+    svg.appendChild(svgEl('text', { x: sx, y: labelY + 12,
+      'text-anchor': 'middle', fill: 'var(--yellow)', 'font-size': 11, 'font-weight': '600' })).textContent = '🐢slow';
+  }
+  if (fast >= 0 && fast < n) {
+    const fx = 20 + fast * (NODE_W + NODE_GAP) + NODE_W/2;
+    svg.appendChild(svgEl('line', { x1: fx, y1: labelY + 16, x2: fx, y2: 22+NODE_H,
+      stroke: 'var(--purple)', 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+    svg.appendChild(svgEl('text', { x: fx, y: labelY + 30,
+      'text-anchor': 'middle', fill: 'var(--purple)', 'font-size': 11, 'font-weight': '600' })).textContent = '🐇fast';
+  }
+}
+
+async function algoMiddle() {
+  algoMidList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoMidList);
+  const n = algoMidList.length;
+  let slow = 0, fast = 0;
+  const stepEl = document.getElementById('mid-step');
+  function setMid(m) { if (stepEl) stepEl.innerHTML = m; }
+  const spd = getSpeed('mid-speed');
+
+  drawMidSvg(algoMidList, slow, fast);
+  setMid('slow=head, fast=head — starting');
+  await delay(spd);
+
+  while (fast < n && fast + 1 < n) {
+    slow += 1;
+    fast += 2;
+    drawMidSvg(algoMidList, Math.min(slow,n-1), Math.min(fast,n-1));
+    const sl = algoMidList[Math.min(slow,n-1)].data;
+    const fl = fast < n ? algoMidList[fast].data : 'NULL';
+    setMid(`slow moves +1 → data=${sl} &nbsp;|&nbsp; fast moves +2 → data=${fl}`);
+    await delay(spd);
+  }
+
+  const mid = Math.min(slow, n-1);
+  drawMidSvg(algoMidList, mid, -1);
+  setMid(`<strong>Middle found!</strong> Node at index ${mid} with data = <strong>${algoMidList[mid].data}</strong> ✓`);
+}
+
+function algoMiddleReset() {
+  algoMidList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoMidList);
+  drawMidSvg(algoMidList, -1, -1);
+  const s = document.getElementById('mid-step'); if (s) s.innerHTML = 'Press ▶ to start animation';
+}
+
+// ---- CYCLE ALGO ----
+function drawCycleSvg(slow, fast) {
+  const svg = document.getElementById('cycle-svg');
+  if (!svg) return;
+  clearSvg(svg);
+  svg.setAttribute('viewBox', '0 0 700 180');
+  svg.setAttribute('height', '180');
+
+  // Draw 5 nodes in a row, last node's next loops back to node 2
+  const cycleList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  const n = cycleList.length;
+  const ys = 16;
+
+  cycleList.forEach((node, i) => {
+    const x = 30 + i * (NODE_W + NODE_GAP);
+    let state = 'normal';
+    if (i === slow && i === fast) state = 'modified';
+    else if (i === slow) state = 'current';
+    else if (i === fast) state = 'highlight';
+    drawNode(svg, x, ys, node.data, '0x'+(0x100+i*0x10).toString(16).toUpperCase(), state);
+    if (i < n - 1) {
+      const ax1 = x + NODE_W, ax2 = x + NODE_W + NODE_GAP;
+      const ay = ys + NODE_H/2;
+      svg.appendChild(svgEl('line', { x1: ax1, y1: ay, x2: ax2-6, y2: ay,
+        stroke: 'var(--text3)', 'stroke-width': 1.5 }));
+      svg.appendChild(svgEl('polygon', {
+        points: `${ax2-6},${ay-4} ${ax2+2},${ay} ${ax2-6},${ay+4}`, fill: 'var(--text3)' }));
+    }
+  });
+
+  // Cycle arrow: node[4] → node[2] (curved below)
+  const lastX = 30 + (n-1) * (NODE_W + NODE_GAP) + NODE_W/2;
+  const cycleX = 30 + 2 * (NODE_W + NODE_GAP) + NODE_W/2;
+  const cy1 = ys + NODE_H;
+  const cyBot = 140;
+
+  const pathD = `M ${lastX} ${cy1+2} Q ${lastX} ${cyBot} ${(lastX+cycleX)/2} ${cyBot} Q ${cycleX} ${cyBot} ${cycleX} ${cy1+2}`;
+  svg.appendChild(svgEl('path', { d: pathD, fill: 'none',
+    stroke: 'var(--red)', 'stroke-width': 2, 'stroke-dasharray': '6 3',
+    'marker-end': 'url(#cycle-arr)' }));
+
+  // special arrow marker for cycle
+  let defs = svg.querySelector('defs');
+  if (!defs) { defs = svgEl('defs',{}); svg.insertBefore(defs, svg.firstChild); }
+  const m = svgEl('marker', { id: 'cycle-arr', viewBox:'0 0 10 10', refX:8, refY:5,
+    markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  m.appendChild(svgEl('path', { d:'M2 2L8 5L2 8', fill:'none', stroke:'var(--red)',
+    'stroke-width':1.5, 'stroke-linecap':'round' }));
+  defs.appendChild(m);
+
+  const ct = svgEl('text', { x: (lastX+cycleX)/2, y: cyBot + 15,
+    'text-anchor': 'middle', fill: 'var(--red)', 'font-size': 11 });
+  ct.textContent = 'cycle: node[4]→node[2]';
+  svg.appendChild(ct);
+
+  // pointer labels
+  if (slow >= 0 && slow < n) {
+    const sx = 30 + slow * (NODE_W + NODE_GAP) + NODE_W/2;
+    svg.appendChild(svgEl('text', { x: sx, y: ys - 8,
+      'text-anchor': 'middle', fill: 'var(--yellow)', 'font-size': 10, 'font-weight':'600' })).textContent = '🐢';
+  }
+  if (fast >= 0 && fast < n) {
+    const fx = 30 + (fast % n) * (NODE_W + NODE_GAP) + NODE_W/2;
+    svg.appendChild(svgEl('text', { x: fx, y: ys - 18,
+      'text-anchor': 'middle', fill: 'var(--purple)', 'font-size': 10, 'font-weight':'600' })).textContent = '🐇';
+  }
+}
+
+async function algoCycle() {
+  drawCycleSvg(-1,-1);
+  const n = 5; const cycleNode = 2;
+  // simulate with indices, cycle at node 2
+  let slow = 0, fast = 0;
+  const stepEl = document.getElementById('cycle-step');
+  function setCS(m) { if (stepEl) stepEl.innerHTML = m; }
+
+  setCS('slow=head, fast=head. Starting Floyd detection...');
+  await delay(500);
+
+  for (let iter = 0; iter < 10; iter++) {
+    slow = (slow + 1) % n;
+    fast = (fast + 2) % n;
+    // wrap fast through cycle (nodes 4→2→3...)
+    drawCycleSvg(slow, fast);
+    setCS(`Iter ${iter+1}: <strong>slow</strong> at node[${slow}]=${[1,2,3,4,5][slow]} &nbsp;|&nbsp; <strong>fast</strong> at node[${fast}]=${[1,2,3,4,5][fast]}`);
+    await delay(500);
+    if (slow === fast) {
+      drawCycleSvg(slow, fast);
+      setCS(`<strong>🚨 Cycle Detected!</strong> slow == fast at node[${slow}] (data=${[1,2,3,4,5][slow]}). Cycle exists! ✓`);
+      return;
+    }
+  }
+}
+
+function algoCycleReset() {
+  drawCycleSvg(-1,-1);
+  const s = document.getElementById('cycle-step'); if(s) s.innerHTML = 'Press ▶ to animate cycle detection';
+}
+
+// ---- PALINDROME ALGO ----
+async function algoPalindrome() {
+  algoPalList = [{data:1},{data:2},{data:2},{data:1}];
+  buildAlgoAddrs(algoPalList);
+  const stepEl = document.getElementById('pal-step');
+  const setPS = m => { if (stepEl) stepEl.innerHTML = m; };
+  const n = algoPalList.length;
+  const spd = 600;
+
+  setPS('<strong>Step 1:</strong> Find middle using slow/fast pointer');
+  // highlight first half
+  drawList('pal-svg', algoPalList, algoPalList.map((_,i) => i < n/2 ? 'current' : 'normal'));
+  await delay(spd);
+
+  setPS('<strong>Step 2:</strong> Reverse second half of list');
+  drawList('pal-svg', algoPalList, algoPalList.map((_,i) => i >= n/2 ? 'modified' : 'processed'));
+  await delay(spd);
+
+  setPS('<strong>Step 3:</strong> Compare from both ends...');
+  const checks = [[0,3],[1,2]];
+  for (const [l,r] of checks) {
+    const st = algoPalList.map((_,i) => i===l||i===r ? 'current' : 'processed');
+    drawList('pal-svg', algoPalList, st);
+    setPS(`Comparing index ${l} (data=${algoPalList[l].data}) with index ${r} (data=${algoPalList[r].data}) → ${algoPalList[l].data === algoPalList[r].data ? '✅ Match' : '❌ Mismatch'}`);
+    await delay(spd);
+  }
+
+  drawList('pal-svg', algoPalList, algoPalList.map(() => 'processed'));
+  setPS('<strong>✅ Palindrome!</strong> All pairs match. [1→2→2→1] is a palindrome. ✓');
+}
+
+function algoPalindromeReset() {
+  algoPalList = [{data:1},{data:2},{data:2},{data:1}];
+  buildAlgoAddrs(algoPalList);
+  drawList('pal-svg', algoPalList, []);
+  const s = document.getElementById('pal-step'); if(s) s.innerHTML = 'Press ▶ to start';
+}
+
+// ---- ODD-EVEN ALGO ----
+async function algoOddEven() {
+  algoOEList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoOEList);
+  const stepEl = document.getElementById('oe-step');
+  const setOE = m => { if (stepEl) stepEl.innerHTML = m; };
+  const spd = 600;
+
+  setOE('<strong>Initial:</strong> [1→2→3→4→5] — will group odd-indexed (1,3,5) then even-indexed (2,4)');
+  drawList('oe-svg', algoOEList, []);
+  await delay(spd);
+
+  // highlight odd indices
+  setOE('<strong>Step 1:</strong> Linking odd-index nodes: 1 → 3 → 5');
+  drawList('oe-svg', algoOEList, algoOEList.map((_,i) => i%2===0?'current':'normal'));
+  await delay(spd);
+
+  setOE('<strong>Step 2:</strong> Linking even-index nodes: 2 → 4');
+  drawList('oe-svg', algoOEList, algoOEList.map((_,i) => i%2===1?'modified':'processed'));
+  await delay(spd);
+
+  // rearrange
+  const result = [algoOEList[0],algoOEList[2],algoOEList[4],algoOEList[1],algoOEList[3]];
+  buildAlgoAddrs(result);
+  drawList('oe-svg', result, result.map((_,i) => i<3?'processed':'modified'));
+  setOE('<strong>Result:</strong> [1→3→5→2→4] — odd indices (1,3,5) followed by even indices (2,4). ✓');
+  algoOEList = result;
+}
+
+function algoOddEvenReset() {
+  algoOEList = [{data:1},{data:2},{data:3},{data:4},{data:5}];
+  buildAlgoAddrs(algoOEList);
+  drawList('oe-svg', algoOEList, []);
+  const s = document.getElementById('oe-step'); if(s) s.innerHTML = 'Press ▶ to start';
+}
+
+// ================================================================
+//  INTERVIEW PAGE
+// ================================================================
+const INTERVIEW_PROBLEMS = [
+  {
+    title: '1. Reverse a Linked List',
+    difficulty: 'Easy',
+    statement: 'Given the head of a singly linked list, reverse the list and return the reversed list.',
+    approach: 'Use three pointers: <code>prev=NULL</code>, <code>curr=head</code>, <code>next=NULL</code>. In each iteration: save next, point curr→prev, advance both.',
+    code: `<span class="ty">Node</span>* <span class="fn">reverse</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span>* prev = <span class="num">NULL</span>, *curr = head, *next;
+    <span class="kw">while</span> (curr) {
+        next       = curr->next;
+        curr->next = prev;
+        prev       = curr;
+        curr       = next;
+    }
+    <span class="kw">return</span> prev;
+}`,
+    mistakes: ['Forgetting to save next before overwriting curr→next', 'Returning curr instead of prev', 'Not handling empty list'],
+    example: [1,2,3,4,5]
+  },
+  {
+    title: '2. Remove Nth Node From End',
+    difficulty: 'Medium',
+    statement: 'Remove the nth node from the end of the list and return its head. (One-pass solution)',
+    approach: 'Use two pointers, n+1 apart. When right reaches NULL, left is at the node before the target.',
+    code: `<span class="ty">Node</span>* <span class="fn">removeNthFromEnd</span>(<span class="ty">Node</span>* head, <span class="kw">int</span> n) {
+    <span class="ty">Node</span> dummy = {<span class="num">0</span>, head}; <span class="cm">// sentinel node</span>
+    <span class="ty">Node</span> *left = &amp;dummy, *right = head;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; n; i++) right = right->next;
+    <span class="kw">while</span> (right) {
+        left = left->next;
+        right = right->next;
+    }
+    <span class="ty">Node</span>* del = left->next;
+    left->next = del->next;
+    <span class="fn">free</span>(del);
+    <span class="kw">return</span> dummy.next;
+}`,
+    mistakes: ['Off-by-one in the gap calculation', 'Not using a sentinel/dummy node (edge case when deleting head)', 'Memory leak: forgetting free()'],
+    example: [1,2,3,4,5]
+  },
+  {
+    title: '3. Detect Cycle in Linked List',
+    difficulty: 'Easy',
+    statement: 'Given head of linked list, determine if the list has a cycle (Floyd\'s algorithm).',
+    approach: 'Slow pointer moves 1 step, fast moves 2. If they meet → cycle exists. If fast reaches NULL → no cycle.',
+    code: `<span class="kw">int</span> <span class="fn">hasCycle</span>(<span class="ty">Node</span>* head) {
+    <span class="ty">Node</span> *s = head, *f = head;
+    <span class="kw">while</span> (f &amp;&amp; f->next) {
+        s = s->next;
+        f = f->next->next;
+        <span class="kw">if</span> (s == f) <span class="kw">return</span> <span class="num">1</span>;
+    }
+    <span class="kw">return</span> <span class="num">0</span>;
+}`,
+    mistakes: ['Checking f != NULL but not f->next (f->next->next will crash)', 'Using a hash map instead of O(1) space solution', 'Checking data equality instead of pointer equality'],
+    example: [3,2,0,4]
+  },
+  {
+    title: '4. Merge Two Sorted Lists',
+    difficulty: 'Easy',
+    statement: 'Merge two sorted linked lists into one sorted list. Return the merged list head.',
+    approach: 'Use a dummy/sentinel head. Compare front nodes, attach the smaller, advance that pointer. Attach the remaining list.',
+    code: `<span class="ty">Node</span>* <span class="fn">mergeSorted</span>(<span class="ty">Node</span>* a, <span class="ty">Node</span>* b) {
+    <span class="ty">Node</span> dummy = {<span class="num">0</span>, <span class="num">NULL</span>};
+    <span class="ty">Node</span>* cur = &amp;dummy;
+    <span class="kw">while</span> (a &amp;&amp; b) {
+        <span class="kw">if</span> (a->data &lt;= b->data) {
+            cur->next = a; a = a->next;
+        } <span class="kw">else</span> {
+            cur->next = b; b = b->next;
+        }
+        cur = cur->next;
+    }
+    cur->next = a ? a : b; <span class="cm">// attach remaining</span>
+    <span class="kw">return</span> dummy.next;
+}`,
+    mistakes: ['Allocating new nodes (wasteful — just rewire)', 'Not handling when one list is already exhausted', 'Forgetting to attach remaining nodes at the end'],
+    example: [1,2,4]
+  },
+  {
+    title: '5. Reverse Sublist (Left to Right)',
+    difficulty: 'Medium',
+    statement: 'Reverse the nodes from position left to position right (1-indexed). One pass.',
+    approach: 'Reach position left-1 using a dummy node. Perform in-place reversal for right-left iterations.',
+    code: `<span class="ty">Node</span>* <span class="fn">reverseBetween</span>(<span class="ty">Node</span>* head, <span class="kw">int</span> left, <span class="kw">int</span> right) {
+    <span class="ty">Node</span> dummy = {<span class="num">0</span>, head};
+    <span class="ty">Node</span>* pre = &amp;dummy;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt; left; i++) pre = pre->next;
+    <span class="ty">Node</span>* cur = pre->next;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; right-left; i++) {
+        <span class="ty">Node</span>* nxt = cur->next;
+        cur->next = nxt->next;
+        nxt->next = pre->next;
+        pre->next = nxt;
+    }
+    <span class="kw">return</span> dummy.next;
+}`,
+    mistakes: ['Using two-pass solution (unnecessary)', 'Off-by-one in the loop count', 'Forgetting the dummy node (head can change)'],
+    example: [1,2,3,4,5]
+  }
+];
+
+function renderInterview() {
+  const container = document.getElementById('interview-list');
+  if (!container || container.children.length > 0) return;
+
+  INTERVIEW_PROBLEMS.forEach((prob, idx) => {
+    const diffClass = prob.difficulty === 'Easy' ? 'badge-easy' : 'badge-med';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-title">
+        ${prob.title}
+        <span class="badge ${diffClass}" style="margin-left:8px">${prob.difficulty}</span>
+      </div>
+      <p><strong>Problem:</strong> ${prob.statement}</p>
+      <div class="viz-box" style="min-height:90px;" id="iv-viz-${idx}">
+        <svg id="iv-svg-${idx}" height="80" viewBox="0 0 500 80"></svg>
+      </div>
+      <div class="alert alert-info" style="margin:10px 0">
+        <span class="alert-icon">💡</span>
+        <div><strong>Approach:</strong> ${prob.approach}</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <div class="code-block">${prob.code}</div>
+      </div>
+      <div style="margin-top:12px">
+        <strong style="font-size:13px;color:var(--red)">⚠️ Common Mistakes:</strong>
+        <ul style="margin-top:8px;padding-left:18px;color:var(--text2);font-size:13px;line-height:2">
+          ${prob.mistakes.map(m => `<li>${m}</li>`).join('')}
+        </ul>
+      </div>`;
+    container.appendChild(card);
+
+    // draw example list
+    setTimeout(() => {
+      const nodes = prob.example.map((d, i) => ({
+        data: d, addr: '0x'+(0x100+i*0x10).toString(16).toUpperCase()
+      }));
+      drawList(`iv-svg-${idx}`, nodes, []);
+    }, 50);
+  });
+}
+
+// ================================================================
+//  DEBUG MODE
+// ================================================================
+const DEBUG_SCENARIOS = [
+  {
+    title: 'NULL Pointer Dereference (Segmentation Fault)',
+    type: 'bug',
+    desc: 'Accessing <code>temp->next</code> when <code>temp</code> is <code>NULL</code>. The most common segfault in linked list code.',
+    badCode: `<span class="ty">Node</span>* temp = head;
+<span class="kw">while</span> (temp->next != <span class="num">NULL</span>) {  <span class="cm">/* ❌ if head is NULL → SEGFAULT */</span>
+    temp = temp->next;
+}`,
+    goodCode: `<span class="ty">Node</span>* temp = head;
+<span class="kw">if</span> (temp == <span class="num">NULL</span>) <span class="kw">return</span>;        <span class="cm">/* ✅ guard: check before use */</span>
+<span class="kw">while</span> (temp->next != <span class="num">NULL</span>) {
+    temp = temp->next;
+}`,
+    memory: [
+      {addr:'0x0000', var:'temp', val:'NULL', type:'Node*', cls:'row-err'},
+      {addr:'???',    var:'temp->next', val:'SEGFAULT', type:'—', cls:'row-err'},
+    ],
+    explain: 'NULL is address 0x0. Reading memory at address 0 is a segmentation fault because the OS does not map address 0 for user programs. Always guard with <code>if (ptr == NULL)</code>.'
+  },
+  {
+    title: 'Memory Leak — Not Calling free()',
+    type: 'bug',
+    desc: 'Deleting a node by moving the head pointer without freeing the old head node causes a memory leak.',
+    badCode: `<span class="cm">/* Deleting head — WRONG */</span>
+<span class="kw">void</span> <span class="fn">deleteBeg</span>(<span class="ty">Node</span>** head) {
+    *head = (*head)->next;  <span class="cm">/* ❌ old head is orphaned in heap */</span>
+}`,
+    goodCode: `<span class="kw">void</span> <span class="fn">deleteBeg</span>(<span class="ty">Node</span>** head) {
+    <span class="kw">if</span> (*head == <span class="num">NULL</span>) <span class="kw">return</span>;
+    <span class="ty">Node</span>* temp = *head;      <span class="cm">/* ✅ save reference first */</span>
+    *head = (*head)->next;
+    <span class="fn">free</span>(temp);               <span class="cm">/* ✅ then free it */</span>
+    temp = <span class="num">NULL</span>;             <span class="cm">/* ✅ avoid dangling pointer */</span>
+}`,
+    memory: [
+      {addr:'0x100', var:'old_head.data', val:'10', type:'int', cls:'row-err'},
+      {addr:'0x104', var:'old_head.next', val:'0x200', type:'Node*', cls:'row-err'},
+      {addr:'—',     var:'status', val:'LEAKED — no free() called', type:'', cls:'row-err'},
+    ],
+    explain: 'When you overwrite the only pointer to a heap object without calling <code>free()</code>, the memory is permanently lost (leaked). Use Valgrind to detect leaks: <code>valgrind --leak-check=full ./program</code>'
+  },
+  {
+    title: 'Dangling Pointer After free()',
+    type: 'bug',
+    desc: 'Using a pointer after the memory it pointed to has been freed.',
+    badCode: `<span class="ty">Node</span>* temp = head;
+<span class="fn">free</span>(temp);
+printf(<span class="st">"%d\n"</span>, temp->data);  <span class="cm">/* ❌ UB: accessing freed memory */</span>`,
+    goodCode: `<span class="ty">Node</span>* temp = head;
+<span class="fn">free</span>(temp);
+temp = <span class="num">NULL</span>;               <span class="cm">/* ✅ nullify immediately after free */</span>
+<span class="kw">if</span> (temp != <span class="num">NULL</span>)          <span class="cm">/* this check now safely fails */</span>
+    printf(<span class="st">"%d\n"</span>, temp->data);`,
+    memory: [
+      {addr:'0x100', var:'temp', val:'0x200 (freed!)', type:'Node*', cls:'row-err'},
+      {addr:'0x200', var:'freed memory', val:'?? garbage', type:'—', cls:'row-err'},
+    ],
+    explain: 'After <code>free(ptr)</code>, the pointer still holds the old address but the memory is returned to the OS. Accessing it is Undefined Behavior — it may crash, silently corrupt data, or appear to work. Always set pointers to NULL after freeing.'
+  },
+  {
+    title: 'malloc() Without Checking Return Value',
+    type: 'bug',
+    desc: 'If malloc() fails (out of memory), it returns NULL. Using the NULL pointer immediately causes a segfault.',
+    badCode: `<span class="ty">Node</span>* n = (<span class="ty">Node</span>*) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Node</span>));
+n->data = val;     <span class="cm">/* ❌ if malloc returned NULL → SEGFAULT */</span>
+n->next = <span class="num">NULL</span>;`,
+    goodCode: `<span class="ty">Node</span>* n = (<span class="ty">Node</span>*) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Node</span>));
+<span class="kw">if</span> (n == <span class="num">NULL</span>) {         <span class="cm">/* ✅ ALWAYS check malloc return */</span>
+    <span class="fn">perror</span>(<span class="st">"malloc failed"</span>);
+    <span class="fn">exit</span>(EXIT_FAILURE);
+}
+n->data = val;
+n->next = <span class="num">NULL</span>;`,
+    memory: [
+      {addr:'0x0000', var:'n (from malloc)', val:'NULL (malloc failed)', type:'Node*', cls:'row-err'},
+      {addr:'0x0000', var:'n->data', val:'SEGFAULT', type:'—', cls:'row-err'},
+    ],
+    explain: 'This is especially critical in embedded systems where RAM is limited. malloc() returns NULL on failure. In production C code, ALWAYS check the return value before using the pointer.'
+  },
+  {
+    title: 'Incorrect Pointer Rewiring During Insertion',
+    type: 'bug',
+    desc: 'Attaching new node to list in wrong order, causing the rest of the list to be lost.',
+    badCode: `<span class="cm">/* Insert at beginning — WRONG order */</span>
+<span class="ty">Node</span>* n = <span class="fn">createNode</span>(val);
+*head  = n;         <span class="cm">/* ❌ WRONG: head moved BEFORE saving old */</span>
+n->next = *head;    <span class="cm">/* ❌ now n->next points to n itself! */</span>`,
+    goodCode: `<span class="ty">Node</span>* n = <span class="fn">createNode</span>(val);
+n->next = *head;    <span class="cm">/* ✅ FIRST: point new node to old head */</span>
+*head   = n;        <span class="cm">/* THEN: update head to new node */</span>`,
+    memory: [
+      {addr:'0x0F0', var:'new_node.data', val: 'val', type:'int', cls:'row-ok'},
+      {addr:'0x0F4', var:'new_node.next', val:'0x0F0 (itself!)', type:'Node*', cls:'row-err'},
+      {addr:'—',     var:'old list', val:'LOST — memory leak', type:'', cls:'row-err'},
+    ],
+    explain: 'The order of pointer assignments matters critically. Rule: in linked list operations, always set up the new node\'s pointers BEFORE updating the pointers that point to it. Otherwise you lose references and create cycles.'
+  }
+];
+
+function renderDebug() {
+  const container = document.getElementById('debug-list');
+  if (!container || container.children.length > 0) return;
+
+  DEBUG_SCENARIOS.forEach((sc, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'dbg-scenario';
+    wrap.innerHTML = `
+      <div class="dbg-header" onclick="toggleDbg(${idx})">
+        <h4>
+          <span class="${sc.type === 'bug' ? 'bug-badge' : 'ok-badge'}">${sc.type === 'bug' ? '🐛 BUG' : '✅ FIX'}</span>
+          ${sc.title}
+        </h4>
+        <span id="dbg-arrow-${idx}" style="color:var(--text2)">▼</span>
+      </div>
+      <div class="dbg-body" id="dbg-body-${idx}">
+        <p style="color:var(--text2);margin-bottom:12px">${sc.desc}</p>
+        <div class="g2">
+          <div>
+            <div class="alert alert-danger"><span class="alert-icon">❌</span><strong>Buggy Code:</strong></div>
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <div class="code-block">${sc.badCode}</div>
+            </div>
+          </div>
+          <div>
+            <div class="alert alert-ok"><span class="alert-icon">✅</span><strong>Fixed Code:</strong></div>
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <div class="code-block">${sc.goodCode}</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">MEMORY STATE DURING BUG:</div>
+          <table class="mem-tbl">
+            <thead><tr><th>Address</th><th>Variable</th><th>Value</th><th>Type</th></tr></thead>
+            <tbody>${sc.memory.map(r => `<tr class="${r.cls||''}"><td>${r.addr}</td><td>${r.var}</td><td>${r.val}</td><td>${r.type}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+        <div class="alert alert-info" style="margin-top:12px">
+          <span class="alert-icon">💡</span>
+          <div><strong>Explanation:</strong> ${sc.explain}</div>
+        </div>
+      </div>`;
+    container.appendChild(wrap);
+  });
+}
+
+function toggleDbg(idx) {
+  const body = document.getElementById(`dbg-body-${idx}`);
+  const arrow = document.getElementById(`dbg-arrow-${idx}`);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ================================================================
+//  QUIZ
+// ================================================================
+const QUIZ_QUESTIONS = [
+  {
+    q: 'What does <code>int* p = NULL;</code> do in C?',
+    opts: ['Allocates memory for an int', 'Creates a pointer that points to nothing (address 0)', 'Creates an integer with value NULL', 'Causes a segmentation fault'],
+    ans: 1,
+    exp: 'NULL is a macro defined as 0 (or (void*)0). Setting a pointer to NULL means it points to address 0, which is an invalid address. It\'s the correct way to initialize a pointer that doesn\'t yet point to valid memory.'
+  },
+  {
+    q: 'What is the output of this code?\n<code>Node* head = NULL;\nprintf("%d", head->data);</code>',
+    opts: ['0', 'Garbage value', 'Segmentation Fault (undefined behavior)', 'Compilation error'],
+    ans: 2,
+    exp: 'Dereferencing a NULL pointer is undefined behavior and almost always causes a segmentation fault. The OS prevents user programs from accessing address 0.'
+  },
+  {
+    q: 'To insert a new node at the beginning of a linked list, what is the correct order?',
+    opts: ['head = new_node; new_node->next = head;', 'new_node->next = head; head = new_node;', 'new_node->next = NULL; head = new_node;', 'head->next = new_node; head = new_node;'],
+    ans: 1,
+    exp: 'You MUST set new_node->next = head FIRST, before overwriting head. If you update head first, you lose the reference to the old list and can\'t set next correctly.'
+  },
+  {
+    q: 'What is the time complexity of finding the length of a linked list?',
+    opts: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'],
+    ans: 2,
+    exp: 'Unlike arrays, linked lists have no O(1) length property. You must traverse every node, giving O(n) time complexity. If you need frequent length checks, maintain a separate size counter.'
+  },
+  {
+    q: 'In Floyd\'s cycle detection, why does the fast pointer move 2 steps at a time?',
+    opts: ['To make it faster than slow', 'Because 2 is the minimum speed difference to guarantee meeting in a cycle', 'To save memory', 'Because it skips NULL checks'],
+    ans: 1,
+    exp: 'A relative speed difference of 1 (fast moves at speed 2, slow at speed 1) is sufficient to guarantee that in a cycle, fast will "lap" slow and they will meet. Any larger difference could cause the fast pointer to "skip over" the slow pointer in certain cycle sizes.'
+  },
+  {
+    q: 'What happens when you call <code>free(ptr)</code> in C?',
+    opts: ['ptr is set to NULL automatically', 'The memory is returned to the heap; ptr still holds the old address', 'The pointer is destroyed', 'All data in the freed memory is zeroed out'],
+    ans: 1,
+    exp: 'free() returns the memory block to the allocator, but the pointer variable is NOT modified. It still holds the old address (now invalid). This is why you should manually set ptr = NULL after free() to avoid dangling pointer bugs.'
+  },
+  {
+    q: 'Which linked list operation has O(1) time complexity?',
+    opts: ['Search by value', 'Insert at tail (without tail pointer)', 'Insert at head', 'Delete node with given value'],
+    ans: 2,
+    exp: 'Inserting at the head only requires creating a new node, pointing it to the current head, and updating head — all constant time operations regardless of list size.'
+  },
+  {
+    q: 'What is <code>sizeof(struct Node)</code> where Node has int data and Node* next, on a 64-bit system?',
+    opts: ['8 bytes', '12 bytes', '16 bytes (with alignment padding)', '4 bytes'],
+    ans: 2,
+    exp: 'int = 4 bytes, Node* = 8 bytes (64-bit pointer). Due to memory alignment, the compiler may add 4 bytes of padding after int to align next on an 8-byte boundary. Total = 16 bytes. Use sizeof() rather than hardcoding sizes.'
+  },
+  {
+    q: 'To traverse a list and print every node, which condition should the while loop use?',
+    opts: ['while (head != NULL)', 'while (curr->next != NULL)', 'while (curr != NULL)', 'while (*head != NULL)'],
+    ans: 2,
+    exp: 'Use `while (curr != NULL)`. Option B (curr->next != NULL) would miss printing the last node. The correct pattern: Node* curr = head; while (curr != NULL) { ... curr = curr->next; }'
+  },
+  {
+    q: 'In the palindrome linked list algorithm (O(1) space), what do we do after finding the middle?',
+    opts: ['Push to a stack', 'Reverse the second half, compare, then restore', 'Use recursion', 'Sort both halves'],
+    ans: 1,
+    exp: 'The O(1) space approach: (1) Find middle using slow/fast pointers, (2) Reverse the second half in-place, (3) Compare from both ends, (4) Optionally restore the list by reversing the second half again. This avoids O(n) extra space from a stack/array approach.'
+  }
+];
+
+let quizIdx = 0, quizScore = 0, quizAnswered = false;
+
+function initQuiz() {
+  quizIdx = 0; quizScore = 0; quizAnswered = false;
+  renderQuizQ();
+}
+
+function renderQuizQ() {
+  const q = QUIZ_QUESTIONS[quizIdx];
+  document.getElementById('q-current').textContent = quizIdx + 1;
+  document.getElementById('q-total').textContent = QUIZ_QUESTIONS.length;
+  document.getElementById('q-score').textContent = quizScore;
+  const pct = Math.round((quizIdx / QUIZ_QUESTIONS.length) * 100);
+  document.getElementById('q-bar').style.width = pct + '%';
+  document.getElementById('q-pct').textContent = pct + '%';
+  document.getElementById('q-next-btn').disabled = true;
+  quizAnswered = false;
+
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = `
+    <div class="quiz-q">
+      <h4>${quizIdx + 1}. ${q.q}</h4>
+      ${q.opts.map((o, i) => `
+        <button class="quiz-opt" onclick="quizAnswer(${i})" id="qopt-${i}">${String.fromCharCode(65+i)}. ${o}</button>
+      `).join('')}
+      <div class="quiz-exp" id="quiz-exp"></div>
+    </div>`;
+}
+
+function quizAnswer(chosen) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = QUIZ_QUESTIONS[quizIdx];
+
+  document.querySelectorAll('.quiz-opt').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.ans) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+
+  if (chosen === q.ans) quizScore++;
+  document.getElementById('q-score').textContent = quizScore;
+
+  const exp = document.getElementById('quiz-exp');
+  exp.innerHTML = `<strong>${chosen === q.ans ? '✅ Correct!' : '❌ Wrong.'}</strong> ${q.exp}`;
+  exp.classList.add('show');
+
+  document.getElementById('q-next-btn').disabled = false;
+}
+
+function quizNext() {
+  quizIdx++;
+  if (quizIdx >= QUIZ_QUESTIONS.length) {
+    showQuizResult();
+  } else {
+    renderQuizQ();
+  }
+}
+
+function showQuizResult() {
+  const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+  const grade = pct >= 90 ? '🏆 Expert!' : pct >= 70 ? '👍 Good!' : pct >= 50 ? '📚 Keep Practicing' : '🔄 Review Basics';
+  document.getElementById('quiz-body').innerHTML = `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:56px;margin-bottom:12px">${pct >= 70 ? '🎉' : '📖'}</div>
+      <div class="quiz-score">${quizScore} / ${QUIZ_QUESTIONS.length}</div>
+      <div style="font-size:20px;margin:8px 0;color:var(--text2)">${grade}</div>
+      <div style="font-size:14px;color:var(--text2);margin-top:8px">${pct}% correct</div>
+    </div>`;
+  document.getElementById('q-bar').style.width = '100%';
+  document.getElementById('q-pct').textContent = '100%';
+  document.getElementById('q-next-btn').disabled = true;
+}
+
+function quizRestart() { initQuiz(); }
+
+// ================================================================
+//  INIT
+// ================================================================
+// Make sure ops page has initial data
+renderOps();
+
+// Auto-resize SVGs on window resize
+window.addEventListener('resize', () => {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) return;
+  const id = activePage.id;
+  if (id === 'page-operations') renderOps();
+  if (id === 'page-basics') initBasics();
+});
+
+</script>
+</body>
+</html>
